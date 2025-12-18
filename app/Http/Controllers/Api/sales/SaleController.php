@@ -72,8 +72,8 @@ class SaleController extends Controller
             'items.*.tax' => 'nullable|numeric|min:0',
         ];
 
-        // Only validate status if it's present in the request
-        if ($request->has('status')) {
+        // Only validate status if it's present in the request and not null/empty
+        if ($request->has('status') && $request->status !== null && $request->status !== '') {
             $rules['status'] = 'required|string|in:draft,pending,partial,paid,cancelled';
         }
 
@@ -252,8 +252,8 @@ class SaleController extends Controller
             'items.*.tax' => 'nullable|numeric|min:0',
         ];
 
-        // Only validate status if it's present in the request
-        if ($request->has('status')) {
+        // Only validate status if it's present in the request and not null/empty
+        if ($request->has('status') && $request->status !== null && $request->status !== '') {
             $rules['status'] = 'required|string|in:draft,pending,partial,paid,cancelled';
         }
 

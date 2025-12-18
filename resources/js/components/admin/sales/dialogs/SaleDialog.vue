@@ -551,9 +551,9 @@ export default {
                     })),
                 };
 
-                // Add status if provided (for draft)
-                if (status) {
-                    payload.status = status;
+                // Add status if provided (for draft) - ensure it's a string
+                if (status && typeof status === 'string') {
+                    payload.status = String(status);
                 }
 
                 console.log('Saving sale with payload:', JSON.stringify(payload, null, 2));
