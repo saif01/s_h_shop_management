@@ -28,7 +28,6 @@ class StockLedger extends Model
         'unit_cost' => 'decimal:2',
         'total_cost' => 'decimal:2',
         'balance_after' => 'integer',
-        'transaction_date' => 'date',
     ];
 
     public function product(): BelongsTo

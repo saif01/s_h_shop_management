@@ -57,7 +57,7 @@
                                 <v-card-title class="cart-header pa-2">
                                     <v-icon size="18" class="mr-1">mdi-cart</v-icon>
                                     <span class="text-body-2 font-weight-medium">Cart Items ({{ cartItems.length
-                                    }})</span>
+                                        }})</span>
                                 </v-card-title>
                                 <v-divider />
                                 <v-card-text class="pa-2">
@@ -144,13 +144,14 @@
                                     <!-- Dates -->
                                     <v-row dense class="ma-0 mb-2">
                                         <v-col cols="6" class="pa-1">
-                                            <DatePicker v-model="form.invoice_date" label="Invoice Date *"
-                                                density="compact" :rules="[rules.required]" :required="true"
-                                                @update:model-value="onInvoiceDateChange" />
+                                            <DatePickerVuetifyInput fieldLabel="Invoice Date" required="true"
+                                                variant="outlined" :initialDate="form.invoice_date"
+                                                @trigerInputValue="(val) => { form.invoice_date = val; }" />
                                         </v-col>
                                         <v-col cols="6" class="pa-1">
-                                            <DatePicker v-model="form.due_date" label="Due Date" density="compact"
-                                                @update:model-value="onDueDateChange" />
+                                            <DatePickerVuetifyInput fieldLabel="Due Date" variant="outlined"
+                                                :initialDate="form.due_date"
+                                                @trigerInputValue="(val) => { form.due_date = val; }" />
                                         </v-col>
                                     </v-row>
 
@@ -161,7 +162,7 @@
                                         <div class="d-flex justify-space-between mb-1">
                                             <span class="text-caption text-grey">Subtotal:</span>
                                             <span class="text-body-2 font-weight-medium">৳{{ form.subtotal.toFixed(2)
-                                            }}</span>
+                                                }}</span>
                                         </div>
 
                                         <div class="d-flex justify-space-between mb-1">
@@ -240,14 +241,14 @@
 
 <script>
 import axios from '@/utils/axios.config';
-import DatePicker from '@/components/common/DatePicker.vue';
+import DatePickerVuetifyInput from '@/components/common/DatePickerVuetifyInput.vue';
 import adminPaginationMixin from '@/mixins/adminPaginationMixin';
 
 export default {
     name: 'SaleDialog',
     mixins: [adminPaginationMixin],
     components: {
-        DatePicker,
+        DatePickerVuetifyInput,
     },
     props: {
         modelValue: { type: Boolean, required: true },
@@ -584,25 +585,6 @@ export default {
             } finally {
                 this.saving = false;
             }
-        },
-        // Date change handlers - bridge v-model to customValueSet pattern
-        onInvoiceDateChange(value) {
-            // Use customValueSet pattern for consistency
-            // Since form.invoice_date is nested, we update it directly and also use customValueSet
-            if (this.form) {
-                this.form.invoice_date = value;
-            }
-            // Also set at root level if needed (for customValueSet compatibility)
-            this.customValueSet('invoice_date', value);
-        },
-        onDueDateChange(value) {
-            // Use customValueSet pattern for consistency
-            // Since form.due_date is nested, we update it directly and also use customValueSet
-            if (this.form) {
-                this.form.due_date = value;
-            }
-            // Also set at root level if needed (for customValueSet compatibility)
-            this.customValueSet('due_date', value);
         },
         close() {
             this.$emit('update:modelValue', false);

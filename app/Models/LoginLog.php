@@ -18,7 +18,6 @@ class LoginLog extends Model
     ];
 
     protected $casts = [
-        'logged_in_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
