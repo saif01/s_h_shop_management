@@ -16,19 +16,20 @@
                             prepend-inner-icon="mdi-format-list-numbered" variant="outlined" density="compact"
                             @update:model-value="onPerPageChange"></v-select>
                     </v-col>
-                    <v-col cols="12" md="4">
-                        <v-text-field v-model="search" label="Search by name, SKU, barcode"
-                            prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" clearable
-                            @keyup.enter="loadProducts" @update:model-value="loadProducts" />
-                    </v-col>
+
                     <v-col cols="12" md="2">
                         <v-select v-model="categoryFilter" :items="categoryOptions" item-value="value"
                             item-title="label" label="Category" clearable variant="outlined" density="compact"
-                            @update:model-value="loadProducts" />
+                            @update:model-value="onFilterChange" />
                     </v-col>
                     <v-col cols="12" md="3">
                         <v-select v-model="activeFilter" :items="activeOptions" label="Status" clearable
-                            variant="outlined" density="compact" @update:model-value="loadProducts" />
+                            variant="outlined" density="compact" @update:model-value="onFilterChange" />
+                    </v-col>
+                    <v-col cols="12" md="4">
+                        <v-text-field v-model="search" label="Search by name, SKU, barcode"
+                            prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" clearable
+                            @keyup.enter="loadProducts" @update:model-value="onSearchChange" />
                     </v-col>
                 </v-row>
             </v-card-text>
@@ -98,7 +99,7 @@
                         <span v-if="products.length > 0 && pagination.total > 0">
                             Showing <strong>{{ ((pagination.current_page - 1) * pagination.per_page) + 1 }}</strong> to
                             <strong>{{ Math.min(pagination.current_page * pagination.per_page, pagination.total)
-                                }}</strong> of
+                            }}</strong> of
                             <strong>{{ pagination.total.toLocaleString() }}</strong> records
                             <span v-if="pagination.last_page > 1" class="ml-2">
                                 (Page {{ pagination.current_page }} of {{ pagination.last_page }})
@@ -224,6 +225,23 @@ export default {
             }
         },
         onPerPageChange() {
+            this.pagination.current_page = 1;
+            this.loadProducts();
+        },
+        resetFilters() {
+            this.search = '';
+            this.categoryFilter = null;
+            this.activeFilter = null;
+            this.pagination.current_page = 1;
+            this.loadProducts();
+        },
+        onSearchChange() {
+            // Reset to first page when search changes
+            this.pagination.current_page = 1;
+            this.loadProducts();
+        },
+        onFilterChange() {
+            // Reset to first page when filters change
             this.pagination.current_page = 1;
             this.loadProducts();
         },
