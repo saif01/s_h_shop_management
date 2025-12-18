@@ -220,8 +220,18 @@ export default {
                 const params = {
                     page: this.pagination.current_page,
                     per_page: this.pagination.per_page,
-                    ...this.filters,
+                    search: this.filters.search || '',
+                    status: this.filters.status || null,
                 };
+
+                // Only add date filters if they have values (not null, not empty string)
+                if (this.filters.date_from && String(this.filters.date_from).trim() !== '') {
+                    params.from_date = this.filters.date_from;
+                }
+                if (this.filters.date_to && String(this.filters.date_to).trim() !== '') {
+                    params.to_date = this.filters.date_to;
+                }
+
                 const { data } = await axios.get('/api/v1/sales', { params });
                 this.sales = data.data || data.sales || [];
                 this.pagination = {
@@ -289,13 +299,17 @@ export default {
             this.pagination.current_page = 1;
             this.fetchSales();
         },
-        // Date change handlers - bridge v-model to customValueSet pattern
+        // Date change handlers - explicitly set the filter value and fetch
         onDateFromChange(value) {
-            this.customValueSet('date_from', value);
+            // Set the filter value explicitly (handles both v-model update and direct value)
+            this.filters.date_from = value || '';
+            this.pagination.current_page = 1; // Reset to first page when filter changes
             this.fetchSales();
         },
         onDateToChange(value) {
-            this.customValueSet('date_to', value);
+            // Set the filter value explicitly (handles both v-model update and direct value)
+            this.filters.date_to = value || '';
+            this.pagination.current_page = 1; // Reset to first page when filter changes
             this.fetchSales();
         },
         getStatusColor(status) {
