@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Builder;
 
 class Product extends Model
 {
@@ -34,8 +35,6 @@ class Product extends Model
         'is_active' => 'boolean',
     ];
 
-    protected $appends = ['stock_quantity'];
-
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
@@ -57,15 +56,32 @@ class Product extends Model
     }
 
     /**
-     * Get total stock quantity across all warehouses
+     * Scope to add total stock quantity using efficient subquery
+     * Prevents N+1 query problem
      */
-    public function getStockQuantityAttribute()
+    public function scopeWithStockQuantity($query)
     {
-        return $this->stocks()->sum('quantity');
+        return $query->addSelect([
+            'stock_quantity' => Stock::selectRaw('COALESCE(SUM(quantity), 0)')
+                ->whereColumn('product_id', 'products.id')
+        ]);
     }
 
     /**
-     * Get stock quantity for a specific warehouse
+     * Scope to add stock quantity for a specific warehouse
+     */
+    public function scopeWithStockForWarehouse($query, $warehouseId)
+    {
+        return $query->addSelect([
+            'stock_quantity' => Stock::selectRaw('COALESCE(quantity, 0)')
+                ->whereColumn('product_id', 'products.id')
+                ->where('warehouse_id', $warehouseId)
+                ->limit(1)
+        ]);
+    }
+
+    /**
+     * Get stock quantity for a specific warehouse (direct method)
      */
     public function getStockForWarehouse($warehouseId)
     {

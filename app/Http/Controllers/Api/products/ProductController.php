@@ -13,7 +13,8 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::with(['category', 'unit']);
+        $query = Product::with(['category', 'unit'])
+            ->withStockQuantity(); // Efficiently load stock quantity with single query
 
         // Filter by category
         if ($request->has('category_id')) {
