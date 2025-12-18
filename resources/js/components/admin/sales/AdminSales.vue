@@ -81,14 +81,14 @@
                                 {{ formatDate(sale.invoice_date) }}
                             </td>
                             <td class="text-end">
-                                ${{ parseFloat(sale.total_amount).toFixed(2) }}
+                                ৳{{ parseFloat(sale.total_amount).toFixed(2) }}
                             </td>
                             <td class="text-end">
-                                ${{ parseFloat(sale.paid_amount).toFixed(2) }}
+                                ৳{{ parseFloat(sale.paid_amount).toFixed(2) }}
                             </td>
                             <td class="text-end">
                                 <v-chip :color="sale.balance_amount > 0 ? 'error' : 'success'" size="small">
-                                    ${{ parseFloat(sale.balance_amount).toFixed(2) }}
+                                    ৳{{ parseFloat(sale.balance_amount).toFixed(2) }}
                                 </v-chip>
                             </td>
                             <td>
@@ -160,6 +160,7 @@
 
 <script>
 import axios from '@/utils/axios.config';
+import { formatDate } from '@/utils/formatters';
 import SaleDialog from './dialogs/SaleDialog.vue';
 import ViewSaleDialog from './dialogs/ViewSaleDialog.vue';
 import DatePicker from '@/components/common/DatePicker.vue';
@@ -287,10 +288,7 @@ export default {
             this.pagination.current_page = 1;
             this.fetchSales();
         },
-        formatDate(date) {
-            if (!date) return '';
-            return new Date(date).toLocaleDateString();
-        },
+        formatDate,
         getStatusColor(status) {
             const colors = {
                 draft: 'grey',

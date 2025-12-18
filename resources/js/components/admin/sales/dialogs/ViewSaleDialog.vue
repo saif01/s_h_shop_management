@@ -59,10 +59,10 @@
                         <tr v-for="item in (saleData.items || [])" :key="item.id || item.product_id">
                             <td>{{ item.product?.name || 'Unknown' }}</td>
                             <td class="text-right">{{ item.quantity }}</td>
-                            <td class="text-right">${{ parseFloat(item.unit_price || 0).toFixed(2) }}</td>
-                            <td class="text-right">${{ parseFloat(item.discount || 0).toFixed(2) }}</td>
-                            <td class="text-right">${{ parseFloat(item.tax || 0).toFixed(2) }}</td>
-                            <td class="text-right font-weight-bold">${{ parseFloat(item.total || 0).toFixed(2) }}</td>
+                            <td class="text-right">৳{{ parseFloat(item.unit_price || 0).toFixed(2) }}</td>
+                            <td class="text-right">৳{{ parseFloat(item.discount || 0).toFixed(2) }}</td>
+                            <td class="text-right">৳{{ parseFloat(item.tax || 0).toFixed(2) }}</td>
+                            <td class="text-right font-weight-bold">৳{{ parseFloat(item.total || 0).toFixed(2) }}</td>
                         </tr>
                     </tbody>
                 </v-table>
@@ -74,33 +74,33 @@
                     <v-col cols="6" offset="6">
                         <div class="d-flex justify-space-between mb-2">
                             <span>Subtotal:</span>
-                            <span>${{ parseFloat(saleData.subtotal).toFixed(2) }}</span>
+                            <span>৳{{ parseFloat(saleData.subtotal).toFixed(2) }}</span>
                         </div>
                         <div v-if="saleData.discount_amount > 0" class="d-flex justify-space-between mb-2">
                             <span>Discount:</span>
-                            <span class="text-error">-${{ parseFloat(saleData.discount_amount).toFixed(2) }}</span>
+                            <span class="text-error">-৳{{ parseFloat(saleData.discount_amount).toFixed(2) }}</span>
                         </div>
                         <div v-if="saleData.tax_amount > 0" class="d-flex justify-space-between mb-2">
                             <span>Tax:</span>
-                            <span>${{ parseFloat(saleData.tax_amount).toFixed(2) }}</span>
+                            <span>৳{{ parseFloat(saleData.tax_amount).toFixed(2) }}</span>
                         </div>
                         <div v-if="saleData.shipping_cost > 0" class="d-flex justify-space-between mb-2">
                             <span>Shipping:</span>
-                            <span>${{ parseFloat(saleData.shipping_cost).toFixed(2) }}</span>
+                            <span>৳{{ parseFloat(saleData.shipping_cost).toFixed(2) }}</span>
                         </div>
                         <v-divider class="my-2" />
                         <div class="d-flex justify-space-between text-h6 mb-2">
                             <span>Total:</span>
-                            <span>${{ parseFloat(saleData.total_amount).toFixed(2) }}</span>
+                            <span>৳{{ parseFloat(saleData.total_amount).toFixed(2) }}</span>
                         </div>
                         <div class="d-flex justify-space-between text-success mb-2">
                             <span>Paid:</span>
-                            <span>${{ parseFloat(saleData.paid_amount).toFixed(2) }}</span>
+                            <span>৳{{ parseFloat(saleData.paid_amount).toFixed(2) }}</span>
                         </div>
                         <div class="d-flex justify-space-between font-weight-bold"
                             :class="saleData.balance_amount > 0 ? 'text-error' : 'text-success'">
                             <span>Balance:</span>
-                            <span>${{ parseFloat(saleData.balance_amount).toFixed(2) }}</span>
+                            <span>৳{{ parseFloat(saleData.balance_amount).toFixed(2) }}</span>
                         </div>
                     </v-col>
                 </v-row>
@@ -130,6 +130,7 @@
 
 <script>
 import axios from '@/utils/axios.config';
+import { formatDate } from '@/utils/formatters';
 
 export default {
     name: 'ViewSaleDialog',
@@ -206,10 +207,7 @@ export default {
                 this.loading = false;
             }
         },
-        formatDate(date) {
-            if (!date) return '';
-            return new Date(date).toLocaleDateString();
-        },
+        formatDate,
         getStatusColor(status) {
             const colors = {
                 draft: 'grey',

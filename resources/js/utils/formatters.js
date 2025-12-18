@@ -12,20 +12,25 @@ export function formatCurrency(value, currency = '৳') {
 }
 
 /**
- * Format date to readable string
+ * Format date to DD/MMM/YYYY format (e.g., 18/Dec/2025)
  * @param {string|Date} date - Date to format
- * @returns {string} Formatted date string
+ * @returns {string} Formatted date string in DD/MMM/YYYY format
  */
 export function formatDate(date) {
     if (!date) return '';
-    const d = new Date(date);
-    if (isNaN(d.getTime())) return '';
-    
-    return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    }).format(d);
+    try {
+        const d = new Date(date);
+        if (isNaN(d.getTime())) return '';
+        
+        const day = String(d.getDate()).padStart(2, '0');
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const month = months[d.getMonth()];
+        const year = d.getFullYear();
+        
+        return `${day}/${month}/${year}`;
+    } catch (error) {
+        return date;
+    }
 }
 
 /**
