@@ -34,6 +34,8 @@ class Product extends Model
         'is_active' => 'boolean',
     ];
 
+    protected $appends = ['stock_quantity'];
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
@@ -52,5 +54,21 @@ class Product extends Model
     public function stockLedgers(): HasMany
     {
         return $this->hasMany(StockLedger::class);
+    }
+
+    /**
+     * Get total stock quantity across all warehouses
+     */
+    public function getStockQuantityAttribute()
+    {
+        return $this->stocks()->sum('quantity');
+    }
+
+    /**
+     * Get stock quantity for a specific warehouse
+     */
+    public function getStockForWarehouse($warehouseId)
+    {
+        return $this->stocks()->where('warehouse_id', $warehouseId)->first()?->quantity ?? 0;
     }
 }
