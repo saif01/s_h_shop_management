@@ -26,26 +26,29 @@
                                         hide-details @keyup.enter="searchProducts" @click:clear="searchResults = []" />
 
                                     <!-- Search Results -->
-                                    <v-list v-if="searchResults.length > 0" class="mt-2 search-results">
-                                        <v-list-item v-for="product in searchResults" :key="product.id"
-                                            @click="addToCart(product)" class="search-item">
-                                            <template #prepend>
-                                                <v-avatar size="40" color="grey-lighten-4">
-                                                    <v-img v-if="product.image" :src="product.image" />
-                                                    <v-icon v-else>mdi-package-variant</v-icon>
-                                                </v-avatar>
-                                            </template>
-                                            <v-list-item-title>{{ product.name }}</v-list-item-title>
-                                            <v-list-item-subtitle>
-                                                SKU: {{ product.sku || 'N/A' }} | Stock: {{ product.stock_quantity || 0
-                                                }}
-                                            </v-list-item-subtitle>
-                                            <template #append>
-                                                <v-chip color="primary" size="small" variant="flat">৳{{
-                                                    product.sale_price }}</v-chip>
-                                            </template>
-                                        </v-list-item>
-                                    </v-list>
+                                    <div v-if="searchResults.length > 0" class="search-results-container">
+                                        <v-list class="search-results">
+                                            <v-list-item v-for="product in searchResults" :key="product.id"
+                                                @click="addToCart(product)" class="search-item">
+                                                <template #prepend>
+                                                    <v-avatar size="40" color="grey-lighten-4">
+                                                        <v-img v-if="product.image" :src="product.image" />
+                                                        <v-icon v-else>mdi-package-variant</v-icon>
+                                                    </v-avatar>
+                                                </template>
+                                                <v-list-item-title>{{ product.name }}</v-list-item-title>
+                                                <v-list-item-subtitle>
+                                                    SKU: {{ product.sku || 'N/A' }} | Stock: {{ product.stock_quantity
+                                                        || 0
+                                                    }}
+                                                </v-list-item-subtitle>
+                                                <template #append>
+                                                    <v-chip color="primary" size="small" variant="flat">৳{{
+                                                        product.sale_price }}</v-chip>
+                                                </template>
+                                            </v-list-item>
+                                        </v-list>
+                                    </div>
                                 </v-card-text>
                             </v-card>
 
@@ -600,7 +603,10 @@ export default {
     z-index: 10;
 }
 
-.search-card,
+.search-card {
+    border-radius: 8px;
+}
+
 .cart-card,
 .details-card {
     border-radius: 8px;
@@ -638,11 +644,16 @@ export default {
     background-color: rgba(0, 0, 0, 0.02);
 }
 
-.search-results {
-    max-height: 300px;
+.search-results-container {
+    margin-top: 8px;
+    max-height: 180px;
     overflow-y: auto;
     border: 1px solid rgba(0, 0, 0, 0.12);
     border-radius: 4px;
+}
+
+.search-results {
+    padding: 0;
 }
 
 .search-item {
