@@ -42,16 +42,39 @@ export default {
 
     watch: {
         computedCustomValue: function (val) {
-            // console.log('computedCustomValue watch', val, this.dbFormatDate)
-            this.$emit("trigerInputValue", this.dbFormatDate);
+            // Only emit if dbFormatDate has been computed
+            if (val && this.dbFormatDate !== null) {
+                this.$emit("trigerInputValue", this.dbFormatDate);
+            }
         },
         initialDate: function (newVal) {
             if (newVal) {
                 this.selectedDate = new Date(newVal);
+                // Force computation and emission after selectedDate is updated
+                this.$nextTick(() => {
+                    // Access computedCustomValue to trigger frmtInsideDate and set dbFormatDate
+                    if (this.computedCustomValue && this.dbFormatDate) {
+                        this.$emit("trigerInputValue", this.dbFormatDate);
+                    }
+                });
             } else {
                 this.selectedDate = null;
+                this.dbFormatDate = null;
+                this.$emit("trigerInputValue", null);
             }
         },
+    },
+
+    mounted() {
+        // Emit initial date value if provided on component mount
+        if (this.initialDate && this.selectedDate) {
+            this.$nextTick(() => {
+                // Access computedCustomValue to trigger frmtInsideDate and set dbFormatDate
+                if (this.computedCustomValue && this.dbFormatDate) {
+                    this.$emit("trigerInputValue", this.dbFormatDate);
+                }
+            });
+        }
     },
 
 
@@ -62,6 +85,7 @@ export default {
         onClear() {
             this.selectedDate = null;
             this.dbFormatDate = null;
+            this.$emit("trigerInputValue", null);
         },
 
         // frmtInsideDate
