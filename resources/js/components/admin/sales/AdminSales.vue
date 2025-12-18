@@ -1,95 +1,147 @@
 <template>
-    <v-container fluid>
-        <v-card>
-            <v-card-title class="d-flex justify-space-between align-center">
-                <div class="d-flex align-center gap-2">
-                    <v-icon>mdi-point-of-sale</v-icon>
-                    <span class="text-h5">Sales / POS</span>
-                </div>
-                <v-btn color="primary" prepend-icon="mdi-plus" @click="openDialog">New Sale</v-btn>
-            </v-card-title>
-            <v-divider />
-            
-            <!-- Filters -->
+    <div>
+        <div class="page-header">
+            <h1 class="text-h4 page-title">Sales / POS</h1>
+            <v-btn color="primary" prepend-icon="mdi-plus" @click="openDialog" class="add-button">
+                New Sale
+            </v-btn>
+        </div>
+
+        <!-- Search and Filter -->
+        <v-card class="mb-4">
             <v-card-text>
-                <v-row dense>
+                <v-row>
                     <v-col cols="12" md="3">
-                        <v-text-field v-model="filters.search" label="Search Invoice/Customer" 
-                            prepend-inner-icon="mdi-magnify" clearable dense hide-details />
+                        <v-select v-model="pagination.per_page" :items="perPageOptions" label="Items per page"
+                            prepend-inner-icon="mdi-format-list-numbered" variant="outlined" density="compact"
+                            @update:model-value="onPerPageChange"></v-select>
+                    </v-col>
+
+                    <v-col cols="12" md="2">
+                        <v-select v-model="filters.status" :items="statusOptions" label="Status"
+                            prepend-inner-icon="mdi-filter" variant="outlined" density="compact" clearable
+                            @update:model-value="fetchSales"></v-select>
                     </v-col>
                     <v-col cols="12" md="2">
-                        <v-select v-model="filters.status" :items="statusOptions" 
-                            label="Status" clearable dense hide-details />
+                        <DatePicker v-model="filters.date_from" label="From Date" density="compact"
+                            @update:model-value="fetchSales" />
                     </v-col>
                     <v-col cols="12" md="2">
-                        <v-text-field v-model="filters.date_from" type="date" 
-                            label="From Date" dense hide-details />
+                        <DatePicker v-model="filters.date_to" label="To Date" density="compact"
+                            @update:model-value="fetchSales" />
                     </v-col>
-                    <v-col cols="12" md="2">
-                        <v-text-field v-model="filters.date_to" type="date" 
-                            label="To Date" dense hide-details />
-                    </v-col>
-                    <v-col cols="12" md="3" class="d-flex gap-2">
-                        <v-btn color="primary" @click="fetchSales">
-                            <v-icon>mdi-magnify</v-icon> Search
-                        </v-btn>
-                        <v-btn @click="resetFilters">
-                            <v-icon>mdi-refresh</v-icon> Reset
-                        </v-btn>
+                    <v-col cols="12" md="3">
+                        <v-text-field v-model="filters.search" label="Search Invoice/Customer"
+                            prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" clearable
+                            @update:model-value="fetchSales"></v-text-field>
                     </v-col>
                 </v-row>
             </v-card-text>
+        </v-card>
 
-            <!-- Sales Table -->
-            <v-data-table :headers="headers" :items="sales" :loading="loading" 
-                :items-per-page="pagination.per_page" hide-default-footer>
-                <template #item.invoice_number="{ item }">
-                    <span class="font-weight-bold">{{ item.invoice_number }}</span>
-                </template>
-                <template #item.customer="{ item }">
-                    {{ item.customer?.name || 'Walk-in' }}
-                </template>
-                <template #item.invoice_date="{ item }">
-                    {{ formatDate(item.invoice_date) }}
-                </template>
-                <template #item.total_amount="{ item }">
-                    ${{ parseFloat(item.total_amount).toFixed(2) }}
-                </template>
-                <template #item.paid_amount="{ item }">
-                    ${{ parseFloat(item.paid_amount).toFixed(2) }}
-                </template>
-                <template #item.balance_amount="{ item }">
-                    <v-chip :color="item.balance_amount > 0 ? 'error' : 'success'" size="small">
-                        ${{ parseFloat(item.balance_amount).toFixed(2) }}
-                    </v-chip>
-                </template>
-                <template #item.status="{ item }">
-                    <v-chip :color="getStatusColor(item.status)" size="small">
-                        {{ item.status }}
-                    </v-chip>
-                </template>
-                <template #item.actions="{ item }">
-                    <v-btn icon="mdi-eye" size="small" variant="text" @click="viewSale(item)" />
-                    <v-btn icon="mdi-pencil" size="small" variant="text" @click="editSale(item)" />
-                    <v-btn icon="mdi-printer" size="small" variant="text" @click="printInvoice(item)" />
-                    <v-btn icon="mdi-delete" size="small" variant="text" color="error" @click="confirmDelete(item)" />
-                </template>
-            </v-data-table>
+        <!-- Sales List -->
+        <v-card>
+            <v-card-title class="d-flex justify-space-between align-center">
+                <span>Sales</span>
+                <span class="text-caption text-grey">
+                    Total Records: <strong>{{ pagination.total || 0 }}</strong>
+                    <span v-if="sales.length > 0">
+                        | Showing {{ ((pagination.current_page - 1) * pagination.per_page) + 1 }} to
+                        {{ Math.min(pagination.current_page * pagination.per_page, pagination.total) }} of
+                        {{ pagination.total }}
+                    </span>
+                </span>
+            </v-card-title>
+            <v-card-text>
+                <div v-if="loading" class="text-center py-4">
+                    <v-progress-circular indeterminate color="primary"></v-progress-circular>
+                </div>
+                <v-table v-else>
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-end">Paid</th>
+                            <th class="text-end">Due</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="sale in sales" :key="sale.id">
+                            <td>
+                                <span class="font-weight-bold">{{ sale.invoice_number }}</span>
+                            </td>
+                            <td>
+                                {{ sale.customer?.name || 'Walk-in' }}
+                            </td>
+                            <td>
+                                {{ formatDate(sale.invoice_date) }}
+                            </td>
+                            <td class="text-end">
+                                ${{ parseFloat(sale.total_amount).toFixed(2) }}
+                            </td>
+                            <td class="text-end">
+                                ${{ parseFloat(sale.paid_amount).toFixed(2) }}
+                            </td>
+                            <td class="text-end">
+                                <v-chip :color="sale.balance_amount > 0 ? 'error' : 'success'" size="small">
+                                    ${{ parseFloat(sale.balance_amount).toFixed(2) }}
+                                </v-chip>
+                            </td>
+                            <td>
+                                <v-chip :color="getStatusColor(sale.status)" size="small">
+                                    {{ sale.status }}
+                                </v-chip>
+                            </td>
+                            <td>
+                                <v-btn icon="mdi-eye" size="small" variant="text" @click="viewSale(sale)" />
+                                <v-btn icon="mdi-pencil" size="small" variant="text" @click="editSale(sale)" />
+                                <v-btn icon="mdi-printer" size="small" variant="text" @click="printInvoice(sale)" />
+                                <v-btn icon="mdi-delete" size="small" variant="text" color="error"
+                                    @click="confirmDelete(sale)" />
+                            </td>
+                        </tr>
+                        <tr v-if="sales.length === 0">
+                            <td colspan="8" class="text-center py-4">No sales found</td>
+                        </tr>
+                    </tbody>
+                </v-table>
 
-            <!-- Pagination -->
-            <v-card-actions class="justify-center">
-                <v-pagination v-model="pagination.current_page" :length="pagination.last_page" 
-                    @update:model-value="fetchSales" />
-            </v-card-actions>
+                <!-- Pagination and Records Info -->
+                <div
+                    class="d-flex flex-column flex-md-row justify-space-between align-center align-md-start gap-3 mt-4">
+                    <div class="text-caption text-grey">
+                        <span v-if="sales.length > 0 && pagination.total > 0">
+                            Showing <strong>{{ ((pagination.current_page - 1) * pagination.per_page) + 1 }}</strong> to
+                            <strong>{{ Math.min(pagination.current_page * pagination.per_page, pagination.total)
+                                }}</strong> of
+                            <strong>{{ pagination.total.toLocaleString() }}</strong> records
+                            <span v-if="pagination.last_page > 1" class="ml-2">
+                                (Page {{ pagination.current_page }} of {{ pagination.last_page }})
+                            </span>
+                        </span>
+                        <span v-else>
+                            No records found
+                        </span>
+                    </div>
+                    <div v-if="pagination.last_page > 1" class="d-flex align-center gap-2">
+                        <v-pagination v-model="pagination.current_page" :length="pagination.last_page"
+                            :total-visible="7" density="comfortable" @update:model-value="fetchSales">
+                        </v-pagination>
+                    </div>
+                </div>
+            </v-card-text>
         </v-card>
 
         <!-- Sale Dialog (POS) -->
-        <SaleDialog :model-value="dialog" @update:model-value="dialog = $event" 
-            :sale="selectedSale" @saved="handleSaved" />
+        <SaleDialog :model-value="dialog" @update:model-value="dialog = $event" :sale="selectedSale"
+            @saved="handleSaved" />
 
         <!-- View Sale Dialog -->
-        <ViewSaleDialog :model-value="viewDialog" @update:model-value="viewDialog = $event" 
-            :sale="selectedSale" />
+        <ViewSaleDialog :model-value="viewDialog" @update:model-value="viewDialog = $event" :sale="selectedSale" />
 
         <!-- Delete Confirmation -->
         <v-dialog v-model="deleteDialog" max-width="400">
@@ -103,19 +155,21 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
-    </v-container>
+    </div>
 </template>
 
 <script>
 import axios from '@/utils/axios.config';
 import SaleDialog from './dialogs/SaleDialog.vue';
 import ViewSaleDialog from './dialogs/ViewSaleDialog.vue';
+import DatePicker from '@/components/common/DatePicker.vue';
 
 export default {
     name: 'AdminSales',
     components: {
         SaleDialog,
         ViewSaleDialog,
+        DatePicker,
     },
     data() {
         return {
@@ -136,16 +190,14 @@ export default {
                 current_page: 1,
                 per_page: 15,
                 last_page: 1,
+                total: 0,
             },
-            headers: [
-                { title: 'Invoice #', key: 'invoice_number' },
-                { title: 'Customer', key: 'customer' },
-                { title: 'Date', key: 'invoice_date' },
-                { title: 'Total', key: 'total_amount', align: 'end' },
-                { title: 'Paid', key: 'paid_amount', align: 'end' },
-                { title: 'Due', key: 'balance_amount', align: 'end' },
-                { title: 'Status', key: 'status' },
-                { title: 'Actions', key: 'actions', sortable: false, align: 'center' },
+            perPageOptions: [
+                { title: '10', value: 10 },
+                { title: '15', value: 15 },
+                { title: '25', value: 25 },
+                { title: '50', value: 50 },
+                { title: '100', value: 100 },
             ],
             statusOptions: [
                 { title: 'Draft', value: 'draft' },
@@ -174,10 +226,11 @@ export default {
                     current_page: data.current_page || 1,
                     per_page: data.per_page || 15,
                     last_page: data.last_page || 1,
+                    total: data.total || 0,
                 };
             } catch (error) {
                 console.error('Failed to fetch sales', error);
-                this.$toast?.error('Failed to load sales');
+                this.showError('Failed to load sales');
             } finally {
                 this.loading = false;
             }
@@ -202,12 +255,12 @@ export default {
             this.deleting = true;
             try {
                 await axios.delete(`/api/v1/sales/${this.selectedSale.id}`);
-                this.$toast?.success('Sale deleted successfully');
+                this.showSuccess('Sale deleted successfully');
                 this.deleteDialog = false;
                 this.fetchSales();
             } catch (error) {
                 console.error('Failed to delete sale', error);
-                this.$toast?.error('Failed to delete sale');
+                this.showError('Failed to delete sale');
             } finally {
                 this.deleting = false;
             }
@@ -215,7 +268,7 @@ export default {
         printInvoice(sale) {
             // TODO: Implement invoice printing
             console.log('Print invoice:', sale.invoice_number);
-            this.$toast?.info('Print feature coming soon');
+            this.showInfo('Print feature coming soon');
         },
         handleSaved() {
             this.fetchSales();
@@ -227,6 +280,10 @@ export default {
                 date_from: '',
                 date_to: '',
             };
+            this.pagination.current_page = 1;
+            this.fetchSales();
+        },
+        onPerPageChange() {
             this.pagination.current_page = 1;
             this.fetchSales();
         },
@@ -244,7 +301,98 @@ export default {
             };
             return colors[status] || 'grey';
         },
+        showSuccess(message) {
+            if (window.Toast) {
+                window.Toast.fire({
+                    icon: 'success',
+                    title: message
+                });
+            } else if (window.Swal) {
+                window.Swal.fire({
+                    icon: 'success',
+                    title: message,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } else {
+                alert(message);
+            }
+        },
+        showError(message) {
+            if (window.Toast) {
+                window.Toast.fire({
+                    icon: 'error',
+                    title: message
+                });
+            } else if (window.Swal) {
+                window.Swal.fire({
+                    icon: 'error',
+                    title: message
+                });
+            } else {
+                alert(message);
+            }
+        },
+        showInfo(message) {
+            if (window.Toast) {
+                window.Toast.fire({
+                    icon: 'info',
+                    title: message
+                });
+            } else if (window.Swal) {
+                window.Swal.fire({
+                    icon: 'info',
+                    title: message,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } else {
+                alert(message);
+            }
+        },
     },
 };
 </script>
 
+<style scoped>
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.page-title {
+    margin: 0;
+}
+</style>
+
+<style>
+/* Non-scoped styles for add button - ensures it works across all scenarios */
+.page-header .add-button {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: inline-flex !important;
+}
+
+.page-header .add-button .v-btn__content {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+.page-header .add-button .v-btn__prepend {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: inline-flex !important;
+    margin-inline-end: 8px !important;
+}
+
+.page-header .add-button .v-icon {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: inline-flex !important;
+    font-size: 20px !important;
+}
+</style>

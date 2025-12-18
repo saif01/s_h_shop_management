@@ -1,16 +1,27 @@
 <template>
     <v-dialog :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)" 
-        max-width="900px">
-        <v-card v-if="saleData">
+        max-width="900px" persistent>
+        <v-card>
             <v-card-title class="d-flex justify-space-between align-center bg-primary">
                 <span class="text-h5 text-white">
                     <v-icon class="text-white">mdi-file-document</v-icon>
-                    Sale Invoice: {{ saleData.invoice_number }}
+                    <span v-if="saleData">Sale Invoice: {{ saleData.invoice_number }}</span>
+                    <span v-else>Loading Sale Details...</span>
                 </span>
                 <v-btn icon="mdi-close" variant="text" class="text-white" @click="close" />
             </v-card-title>
             
             <v-card-text class="pa-6">
+                <div v-if="loading" class="text-center py-8">
+                    <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+                    <div class="mt-4">Loading sale details...</div>
+                </div>
+                <div v-else-if="!saleData" class="text-center py-8">
+                    <v-alert type="error" variant="tonal">
+                        Failed to load sale details
+                    </v-alert>
+                </div>
+                <div v-else>
                 <!-- Header Info -->
                 <v-row class="mb-4">
                     <v-col cols="6">
@@ -42,13 +53,16 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="item in saleData.items" :key="item.id">
+                        <tr v-if="!saleData.items || saleData.items.length === 0">
+                            <td colspan="6" class="text-center py-4 text-grey">No items found</td>
+                        </tr>
+                        <tr v-for="item in (saleData.items || [])" :key="item.id || item.product_id">
                             <td>{{ item.product?.name || 'Unknown' }}</td>
                             <td class="text-right">{{ item.quantity }}</td>
-                            <td class="text-right">${{ parseFloat(item.unit_price).toFixed(2) }}</td>
+                            <td class="text-right">${{ parseFloat(item.unit_price || 0).toFixed(2) }}</td>
                             <td class="text-right">${{ parseFloat(item.discount || 0).toFixed(2) }}</td>
                             <td class="text-right">${{ parseFloat(item.tax || 0).toFixed(2) }}</td>
-                            <td class="text-right font-weight-bold">${{ parseFloat(item.total).toFixed(2) }}</td>
+                            <td class="text-right font-weight-bold">${{ parseFloat(item.total || 0).toFixed(2) }}</td>
                         </tr>
                     </tbody>
                 </v-table>
@@ -100,6 +114,7 @@
                 <div class="text-caption mt-4">
                     <strong>Warehouse:</strong> {{ saleData.warehouse?.name || 'N/A' }}
                 </div>
+                </div>
             </v-card-text>
 
             <v-divider />
@@ -127,27 +142,66 @@ export default {
         return {
             saleData: null,
             loading: false,
+            currentSaleId: null, // Track which sale ID we're loading to prevent duplicates
         };
     },
     watch: {
+        modelValue: {
+            immediate: true,
+            handler(newVal) {
+                if (newVal && this.sale && this.sale.id) {
+                    // Load sale details when dialog opens
+                    if (this.currentSaleId !== this.sale.id) {
+                        this.loadSaleDetails(this.sale.id);
+                    }
+                } else if (!newVal) {
+                    // Reset data when dialog closes
+                    this.saleData = null;
+                    this.currentSaleId = null;
+                }
+            },
+        },
         sale: {
             immediate: true,
             handler(newVal) {
-                if (newVal) {
-                    this.loadSaleDetails(newVal.id);
+                if (newVal && newVal.id && this.modelValue) {
+                    // Load sale details when sale prop changes and dialog is open
+                    if (this.currentSaleId !== newVal.id) {
+                        this.loadSaleDetails(newVal.id);
+                    }
                 }
             },
         },
     },
     methods: {
         async loadSaleDetails(id) {
+            if (!id) {
+                console.error('No sale ID provided');
+                return;
+            }
+            
+            // Prevent duplicate loading
+            if (this.currentSaleId === id && this.saleData) {
+                return;
+            }
+            
+            this.currentSaleId = id;
             this.loading = true;
+            this.saleData = null;
+            
             try {
                 const { data } = await axios.get(`/api/v1/sales/${id}`);
-                this.saleData = data.data || data.sale;
+                this.saleData = data.data || data.sale || data;
+                
+                if (!this.saleData) {
+                    this.showError('Sale data not found');
+                    this.currentSaleId = null;
+                }
             } catch (error) {
-                console.error('Failed to load sale details', error);
-                this.$toast?.error('Failed to load sale details');
+                console.error('Failed to load sale details:', error);
+                console.error('Error response:', error.response?.data);
+                this.showError(error.response?.data?.message || 'Failed to load sale details');
+                this.currentSaleId = null;
             } finally {
                 this.loading = false;
             }
@@ -171,6 +225,23 @@ export default {
         },
         close() {
             this.$emit('update:modelValue', false);
+            this.saleData = null;
+            this.currentSaleId = null;
+        },
+        showError(message) {
+            if (window.Toast) {
+                window.Toast.fire({
+                    icon: 'error',
+                    title: message
+                });
+            } else if (window.Swal) {
+                window.Swal.fire({
+                    icon: 'error',
+                    title: message
+                });
+            } else {
+                alert(message);
+            }
         },
     },
 };

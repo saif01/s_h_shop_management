@@ -119,11 +119,11 @@
                                         item-title="name" label="Warehouse *" :rules="[rules.required]" />
 
                                     <!-- Invoice Date -->
-                                    <v-text-field v-model="form.invoice_date" type="date" label="Invoice Date *"
-                                        :rules="[rules.required]" />
+                                    <DatePicker v-model="form.invoice_date" label="Invoice Date *"
+                                        :rules="[rules.required]" :required="true" />
 
                                     <!-- Due Date -->
-                                    <v-text-field v-model="form.due_date" type="date" label="Due Date" />
+                                    <DatePicker v-model="form.due_date" label="Due Date" />
 
                                     <v-divider class="my-4" />
 
@@ -185,9 +185,13 @@
 
 <script>
 import axios from '@/utils/axios.config';
+import DatePicker from '@/components/common/DatePicker.vue';
 
 export default {
     name: 'SaleDialog',
+    components: {
+        DatePicker,
+    },
     props: {
         modelValue: { type: Boolean, required: true },
         sale: { type: Object, default: null },
@@ -225,9 +229,9 @@ export default {
         sale: {
             immediate: true,
             async handler(newVal) {
-                if (newVal) {
-                    this.form = { ...this.getEmptyForm(), ...newVal };
-                    await this.loadSaleItems();
+                if (newVal && newVal.id) {
+                    // Load full sale details when editing
+                    await this.loadSaleForEdit(newVal.id);
                 } else {
                     this.form = this.getEmptyForm();
                     this.cartItems = [];
@@ -237,6 +241,15 @@ export default {
         modelValue(val) {
             if (val) {
                 this.fetchOptions();
+                // Reset form when opening new dialog
+                if (!this.sale || !this.sale.id) {
+                    this.form = this.getEmptyForm();
+                    this.cartItems = [];
+                }
+            } else {
+                // Reset when closing
+                this.form = this.getEmptyForm();
+                this.cartItems = [];
             }
         },
     },
@@ -336,24 +349,65 @@ export default {
                 (this.form.total_amount - (this.form.paid_amount || 0)).toFixed(2)
             );
         },
-        async loadSaleItems() {
-            if (!this.form.id) return;
+        async loadSaleForEdit(saleId) {
+            if (!saleId) return;
+
             try {
-                const { data } = await axios.get(`/api/v1/sales/${this.form.id}`);
-                const sale = data.data || data.sale;
-                if (sale.items) {
-                    this.cartItems = sale.items.map(item => ({
-                        product_id: item.product_id,
-                        product_name: item.product?.name || 'Unknown',
-                        quantity: item.quantity,
-                        unit_price: parseFloat(item.unit_price),
-                        discount: parseFloat(item.discount || 0),
-                        tax: parseFloat(item.tax || 0),
-                        total: parseFloat(item.total),
-                    }));
+                const response = await axios.get(`/api/v1/sales/${saleId}`);
+                const sale = response.data;
+
+                if (!sale) {
+                    this.showError('Sale not found');
+                    return;
                 }
+
+                console.log('Loading sale for edit:', sale);
+
+                // Populate form with sale data
+                this.form = {
+                    id: sale.id,
+                    customer_id: sale.customer_id,
+                    warehouse_id: sale.warehouse_id,
+                    invoice_date: sale.invoice_date ? (sale.invoice_date.includes('T') ? sale.invoice_date.split('T')[0] : sale.invoice_date) : new Date().toISOString().split('T')[0],
+                    due_date: sale.due_date ? (sale.due_date.includes('T') ? sale.due_date.split('T')[0] : sale.due_date) : null,
+                    subtotal: parseFloat(sale.subtotal || 0),
+                    tax_amount: parseFloat(sale.tax_amount || 0),
+                    discount_amount: parseFloat(sale.discount_amount || 0),
+                    shipping_cost: parseFloat(sale.shipping_cost || 0),
+                    total_amount: parseFloat(sale.total_amount || 0),
+                    paid_amount: parseFloat(sale.paid_amount || 0),
+                    balance_amount: parseFloat(sale.balance_amount || 0),
+                    notes: sale.notes || '',
+                };
+
+                // Load sale items
+                if (sale.items && Array.isArray(sale.items) && sale.items.length > 0) {
+                    this.cartItems = sale.items.map(item => {
+                        const subtotal = (item.quantity || 0) * (item.unit_price || 0);
+                        const discount = parseFloat(item.discount || 0);
+                        const tax = parseFloat(item.tax || 0);
+                        const total = subtotal - discount + tax;
+
+                        return {
+                            product_id: item.product_id,
+                            product_name: item.product?.name || 'Unknown',
+                            quantity: parseInt(item.quantity, 10),
+                            unit_price: parseFloat(item.unit_price || 0),
+                            discount: discount,
+                            tax: tax,
+                            total: total,
+                        };
+                    });
+                } else {
+                    this.cartItems = [];
+                }
+
+                // Recalculate totals to ensure consistency
+                this.calculateTotals();
             } catch (error) {
-                console.error('Failed to load sale items', error);
+                console.error('Failed to load sale for edit:', error);
+                console.error('Error response:', error.response?.data);
+                this.showError(error.response?.data?.message || 'Failed to load sale details');
             }
         },
         showSuccess(message) {
