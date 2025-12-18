@@ -52,7 +52,7 @@ class SaleController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $rules = [
             'invoice_number' => 'nullable|string|max:255|unique:sales,invoice_number',
             'customer_id' => 'required|exists:customers,id',
             'warehouse_id' => 'required|exists:warehouses,id',
@@ -70,7 +70,14 @@ class SaleController extends Controller
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.discount' => 'nullable|numeric|min:0',
             'items.*.tax' => 'nullable|numeric|min:0',
-        ]);
+        ];
+
+        // Only validate status if it's present in the request
+        if ($request->has('status')) {
+            $rules['status'] = 'required|string|in:draft,pending,partial,paid,cancelled';
+        }
+
+        $validated = $request->validate($rules);
 
         $invoiceNumber = $validated['invoice_number'] ?? Str::upper('INV-' . now()->format('YmdHis') . '-' . Str::random(4));
         $paidAmount = $validated['paid_amount'] ?? 0;
@@ -95,9 +102,18 @@ class SaleController extends Controller
         $totalAmount = $subtotal - $discountAmount + $taxAmount + $shipping;
         $paidAmount = min($paidAmount, $totalAmount);
         $balance = max($totalAmount - $paidAmount, 0);
-        $status = $balance <= 0 ? 'paid' : ($paidAmount > 0 ? 'partial' : 'pending');
+        
+        // Use provided status or calculate it automatically
+        if (isset($validated['status']) && $validated['status'] !== null && $validated['status'] !== '') {
+            $status = (string) $validated['status'];
+        } else {
+            $status = $balance <= 0 ? 'paid' : ($paidAmount > 0 ? 'partial' : 'pending');
+        }
+        // Ensure status is always a valid string
+        $status = (string) $status;
+        $isDraft = $status === 'draft';
 
-        $sale = DB::transaction(function () use ($validated, $invoiceNumber, $subtotal, $discountAmount, $taxAmount, $shipping, $totalAmount, $paidAmount, $balance, $status) {
+        $sale = DB::transaction(function () use ($validated, $invoiceNumber, $subtotal, $discountAmount, $taxAmount, $shipping, $totalAmount, $paidAmount, $balance, $status, $isDraft) {
             $sale = Sale::create([
                 'invoice_number' => $invoiceNumber,
                 'customer_id' => $validated['customer_id'],
@@ -118,14 +134,19 @@ class SaleController extends Controller
 
             foreach ($validated['items'] as $itemData) {
                 $product = Product::find($itemData['product_id']);
-                $stock = Stock::where('product_id', $itemData['product_id'])
-                    ->where('warehouse_id', $validated['warehouse_id'])
-                    ->lockForUpdate()
-                    ->first();
+                $stock = null;
+                
+                // Check stock availability and lock for update (skip for draft sales)
+                if (!$isDraft) {
+                    $stock = Stock::where('product_id', $itemData['product_id'])
+                        ->where('warehouse_id', $validated['warehouse_id'])
+                        ->lockForUpdate()
+                        ->first();
 
-                $availableQty = $stock?->quantity ?? 0;
-                if ($availableQty < $itemData['quantity']) {
-                    abort(422, "Insufficient stock for {$product->name}");
+                    $availableQty = $stock?->quantity ?? 0;
+                    if ($availableQty < $itemData['quantity']) {
+                        abort(422, "Insufficient stock for {$product->name}");
+                    }
                 }
 
                 $lineSubtotal = $itemData['unit_price'] * $itemData['quantity'];
@@ -144,7 +165,8 @@ class SaleController extends Controller
                     'notes' => $itemData['notes'] ?? null,
                 ]);
 
-                if ($stock) {
+                // Skip stock deduction and ledger for draft sales
+                if (!$isDraft && $stock) {
                     $oldQty = $stock->quantity;
                     $newQty = $oldQty - $saleItem->quantity;
                     $newQty = max($newQty, 0);
@@ -156,33 +178,29 @@ class SaleController extends Controller
                     $valueBefore = $oldQty * $stock->average_cost;
                     $valueAfter = $newQty * $stock->average_cost;
                     $unitCost = $stock->average_cost;
-                } else {
-                    $balanceAfter = 0;
-                    $valueBefore = 0;
-                    $valueAfter = 0;
-                    $unitCost = 0;
-                }
 
-                StockLedger::create([
-                    'product_id' => $saleItem->product_id,
-                    'warehouse_id' => $validated['warehouse_id'],
-                    'type' => 'out',
-                    'reference_type' => 'sales',
-                    'reference_id' => $sale->id,
-                    'reference_number' => $invoiceNumber,
-                    'quantity' => $saleItem->quantity,
-                    'unit_cost' => $unitCost,
-                    'weighted_avg_cost' => $unitCost,
-                    'total_cost' => $saleItem->quantity * $unitCost,
-                    'balance_after' => $balanceAfter,
-                    'value_before' => $valueBefore,
-                    'value_after' => $valueAfter,
-                    'created_by' => auth()->id(),
-                    'transaction_date' => $validated['invoice_date'],
-                ]);
+                    StockLedger::create([
+                        'product_id' => $saleItem->product_id,
+                        'warehouse_id' => $validated['warehouse_id'],
+                        'type' => 'out',
+                        'reference_type' => 'sales',
+                        'reference_id' => $sale->id,
+                        'reference_number' => $invoiceNumber,
+                        'quantity' => $saleItem->quantity,
+                        'unit_cost' => $unitCost,
+                        'weighted_avg_cost' => $unitCost,
+                        'total_cost' => $saleItem->quantity * $unitCost,
+                        'balance_after' => $balanceAfter,
+                        'value_before' => $valueBefore,
+                        'value_after' => $valueAfter,
+                        'created_by' => auth()->id(),
+                        'transaction_date' => $validated['invoice_date'],
+                    ]);
+                }
             }
 
-            if ($paidAmount > 0) {
+            // Skip payment creation for draft sales
+            if (!$isDraft && $paidAmount > 0) {
                 Payment::create([
                     'payment_number' => Str::upper('REC-' . now()->format('YmdHis') . '-' . Str::random(4)),
                     'payment_type' => 'sale',
@@ -215,7 +233,7 @@ class SaleController extends Controller
 
     public function update(Request $request, Sale $sale)
     {
-        $validated = $request->validate([
+        $rules = [
             'customer_id' => 'required|exists:customers,id',
             'warehouse_id' => 'required|exists:warehouses,id',
             'invoice_date' => 'required|date',
@@ -232,7 +250,14 @@ class SaleController extends Controller
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.discount' => 'nullable|numeric|min:0',
             'items.*.tax' => 'nullable|numeric|min:0',
-        ]);
+        ];
+
+        // Only validate status if it's present in the request
+        if ($request->has('status')) {
+            $rules['status'] = 'required|string|in:draft,pending,partial,paid,cancelled';
+        }
+
+        $validated = $request->validate($rules);
 
         $paidAmount = $validated['paid_amount'] ?? 0;
         $shipping = $validated['shipping_cost'] ?? 0;
@@ -256,9 +281,20 @@ class SaleController extends Controller
         $totalAmount = $subtotal - $discountAmount + $taxAmount + $shipping;
         $paidAmount = min($paidAmount, $totalAmount);
         $balance = max($totalAmount - $paidAmount, 0);
-        $status = $balance <= 0 ? 'paid' : ($paidAmount > 0 ? 'partial' : 'pending');
+        
+        // Use provided status, otherwise keep existing status, or calculate it automatically
+        if (isset($validated['status']) && $validated['status'] !== null && $validated['status'] !== '') {
+            $status = (string) $validated['status'];
+        } elseif (!empty($sale->status)) {
+            $status = (string) $sale->status;
+        } else {
+            $status = $balance <= 0 ? 'paid' : ($paidAmount > 0 ? 'partial' : 'pending');
+        }
+        // Ensure status is always a valid string
+        $status = (string) $status;
+        $isDraft = $status === 'draft';
 
-        $sale = DB::transaction(function () use ($sale, $validated, $subtotal, $discountAmount, $taxAmount, $shipping, $totalAmount, $paidAmount, $balance, $status) {
+        $sale = DB::transaction(function () use ($sale, $validated, $subtotal, $discountAmount, $taxAmount, $shipping, $totalAmount, $paidAmount, $balance, $status, $isDraft) {
             // Update sale
             $sale->update([
                 'customer_id' => $validated['customer_id'],
@@ -282,14 +318,19 @@ class SaleController extends Controller
             // Create new items
             foreach ($validated['items'] as $itemData) {
                 $product = Product::find($itemData['product_id']);
-                $stock = Stock::where('product_id', $itemData['product_id'])
-                    ->where('warehouse_id', $validated['warehouse_id'])
-                    ->lockForUpdate()
-                    ->first();
+                $stock = null;
+                
+                // Check stock availability and lock for update (skip for draft sales)
+                if (!$isDraft) {
+                    $stock = Stock::where('product_id', $itemData['product_id'])
+                        ->where('warehouse_id', $validated['warehouse_id'])
+                        ->lockForUpdate()
+                        ->first();
 
-                $availableQty = $stock?->quantity ?? 0;
-                if ($availableQty < $itemData['quantity']) {
-                    abort(422, "Insufficient stock for {$product->name}");
+                    $availableQty = $stock?->quantity ?? 0;
+                    if ($availableQty < $itemData['quantity']) {
+                        abort(422, "Insufficient stock for {$product->name}");
+                    }
                 }
 
                 $lineSubtotal = $itemData['unit_price'] * $itemData['quantity'];
@@ -308,7 +349,8 @@ class SaleController extends Controller
                     'notes' => $itemData['notes'] ?? null,
                 ]);
 
-                if ($stock) {
+                // Skip stock deduction and ledger for draft sales
+                if (!$isDraft && $stock) {
                     $oldQty = $stock->quantity;
                     $newQty = $oldQty - $saleItem->quantity;
                     $newQty = max($newQty, 0);
@@ -320,34 +362,29 @@ class SaleController extends Controller
                     $valueBefore = $oldQty * $stock->average_cost;
                     $valueAfter = $newQty * $stock->average_cost;
                     $unitCost = $stock->average_cost;
-                } else {
-                    $balanceAfter = 0;
-                    $valueBefore = 0;
-                    $valueAfter = 0;
-                    $unitCost = 0;
-                }
 
-                StockLedger::create([
-                    'product_id' => $saleItem->product_id,
-                    'warehouse_id' => $validated['warehouse_id'],
-                    'type' => 'out',
-                    'reference_type' => 'sales',
-                    'reference_id' => $sale->id,
-                    'reference_number' => $sale->invoice_number,
-                    'quantity' => $saleItem->quantity,
-                    'unit_cost' => $unitCost,
-                    'weighted_avg_cost' => $unitCost,
-                    'total_cost' => $saleItem->quantity * $unitCost,
-                    'balance_after' => $balanceAfter,
-                    'value_before' => $valueBefore,
-                    'value_after' => $valueAfter,
-                    'created_by' => auth()->id(),
-                    'transaction_date' => $validated['invoice_date'],
-                ]);
+                    StockLedger::create([
+                        'product_id' => $saleItem->product_id,
+                        'warehouse_id' => $validated['warehouse_id'],
+                        'type' => 'out',
+                        'reference_type' => 'sales',
+                        'reference_id' => $sale->id,
+                        'reference_number' => $sale->invoice_number,
+                        'quantity' => $saleItem->quantity,
+                        'unit_cost' => $unitCost,
+                        'weighted_avg_cost' => $unitCost,
+                        'total_cost' => $saleItem->quantity * $unitCost,
+                        'balance_after' => $balanceAfter,
+                        'value_before' => $valueBefore,
+                        'value_after' => $valueAfter,
+                        'created_by' => auth()->id(),
+                        'transaction_date' => $validated['invoice_date'],
+                    ]);
+                }
             }
 
-            // Update payment if paid_amount changed
-            if ($paidAmount > 0) {
+            // Skip payment creation/update for draft sales
+            if (!$isDraft && $paidAmount > 0) {
                 $payment = Payment::where('reference_type', 'sale')
                     ->where('reference_id', $sale->id)
                     ->first();

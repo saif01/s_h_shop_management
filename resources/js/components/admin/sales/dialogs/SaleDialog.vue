@@ -230,6 +230,11 @@
             <v-divider />
             <v-card-actions class="pa-2 justify-end">
                 <v-btn variant="text" size="small" @click="close">Cancel</v-btn>
+                <v-btn v-if="!isEdit" color="grey" size="small" :loading="saving" :disabled="cartItems.length === 0"
+                    @click="saveAsDraft">
+                    <v-icon size="18" class="mr-1">mdi-content-save-outline</v-icon>
+                    Save as Draft
+                </v-btn>
                 <v-btn color="success" size="small" :loading="saving" :disabled="cartItems.length === 0" @click="save">
                     <v-icon size="18" class="mr-1">mdi-content-save</v-icon>
                     {{ isEdit ? 'Update' : 'Save Sale' }}
@@ -494,7 +499,7 @@ export default {
                 alert(message);
             }
         },
-        async save() {
+        async save(status = null) {
             if (this.cartItems.length === 0) {
                 this.showError('Please add at least one product');
                 return;
@@ -546,15 +551,20 @@ export default {
                     })),
                 };
 
+                // Add status if provided (for draft)
+                if (status) {
+                    payload.status = status;
+                }
+
                 console.log('Saving sale with payload:', JSON.stringify(payload, null, 2));
 
                 let response;
                 if (this.isEdit) {
                     response = await axios.put(`/api/v1/sales/${this.form.id}`, payload);
-                    this.showSuccess('Sale updated successfully');
+                    this.showSuccess(status === 'draft' ? 'Sale draft updated successfully' : 'Sale updated successfully');
                 } else {
                     response = await axios.post('/api/v1/sales', payload);
-                    this.showSuccess('Sale created successfully');
+                    this.showSuccess(status === 'draft' ? 'Sale saved as draft successfully' : 'Sale created successfully');
                 }
 
                 console.log('Sale saved successfully:', response.data);
@@ -585,6 +595,9 @@ export default {
             } finally {
                 this.saving = false;
             }
+        },
+        async saveAsDraft() {
+            await this.save('draft');
         },
         close() {
             this.$emit('update:modelValue', false);
