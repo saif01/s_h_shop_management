@@ -17,6 +17,9 @@ use App\Http\Controllers\Api\master\CustomerController;
 use App\Http\Controllers\Api\purchase\PurchaseController;
 use App\Http\Controllers\Api\payments\PaymentController;
 use App\Http\Controllers\Api\sales\SaleController;
+use App\Http\Controllers\Api\products\UnitController;
+use App\Http\Controllers\Api\stock\WarehouseController;
+use App\Http\Controllers\Api\reports\ReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('test', function () {
@@ -126,5 +129,37 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('customers', CustomerController::class);
         Route::get('payments', [PaymentController::class, 'index']);
         Route::post('payments', [PaymentController::class, 'store']);
+
+        // Units & Warehouses
+        Route::apiResource('units', UnitController::class);
+        Route::apiResource('warehouses', WarehouseController::class);
+
+        // Reports
+        Route::prefix('reports')->group(function () {
+            // Sales Reports
+            Route::get('sales', [ReportController::class, 'salesReport']);
+            Route::get('sales/export/excel', [ReportController::class, 'exportSalesExcel']);
+            Route::get('sales/export/pdf', [ReportController::class, 'exportSalesPDF']);
+            
+            // Purchase Reports
+            Route::get('purchases', [ReportController::class, 'purchaseReport']);
+            Route::get('purchases/export/excel', [ReportController::class, 'exportSalesExcel']);
+            Route::get('purchases/export/pdf', [ReportController::class, 'exportSalesPDF']);
+            
+            // Stock Reports
+            Route::get('stock', [ReportController::class, 'stockReport']);
+            Route::get('stock/export/excel', [ReportController::class, 'exportSalesExcel']);
+            Route::get('stock/export/pdf', [ReportController::class, 'exportSalesPDF']);
+            
+            // Due Reports
+            Route::get('due', [ReportController::class, 'dueReport']);
+            Route::get('due/export/excel', [ReportController::class, 'exportSalesExcel']);
+            Route::get('due/export/pdf', [ReportController::class, 'exportSalesPDF']);
+            
+            // Profit Reports
+            Route::get('profit', [ReportController::class, 'profitReport']);
+            Route::get('profit/export/excel', [ReportController::class, 'exportSalesExcel']);
+            Route::get('profit/export/pdf', [ReportController::class, 'exportSalesPDF']);
+        });
     });
 });

@@ -59,6 +59,9 @@
                     <v-list-item prepend-icon="mdi-folder-multiple" title="Categories"
                         :to="{ name: 'AdminCategories' }">
                     </v-list-item>
+                    <v-list-item v-if="hasPermission('manage-units')" prepend-icon="mdi-weight-kilogram" title="Units" 
+                        :to="{ name: 'AdminUnits' }">
+                    </v-list-item>
                 </v-list-group>
 
                 <!-- ============================================ -->
@@ -70,6 +73,9 @@
                     </template>
                     <v-list-item prepend-icon="mdi-book-open-variant" title="Stock Ledger"
                         :to="{ name: 'AdminStockLedger' }">
+                    </v-list-item>
+                    <v-list-item v-if="hasPermission('manage-warehouses')" prepend-icon="mdi-home-city" title="Warehouses" 
+                        :to="{ name: 'AdminWarehouses' }">
                     </v-list-item>
                 </v-list-group>
 
@@ -86,6 +92,13 @@
                 </v-list-group>
 
                 <!-- ============================================ -->
+                <!-- SALES / POS -->
+                <!-- ============================================ -->
+                <v-list-item v-if="hasPermission('view-sales')" link router prepend-icon="mdi-point-of-sale"
+                    title="Sales / POS" :to="{ name: 'AdminSales' }" value="Sales" exact>
+                </v-list-item>
+
+                <!-- ============================================ -->
                 <!-- MASTER DATA -->
                 <!-- ============================================ -->
                 <v-list-group v-if="hasPermission('manage-suppliers') || hasPermission('manage-customers')" value="master" prepend-icon="mdi-database"
@@ -98,6 +111,13 @@
                     <v-list-item v-if="hasPermission('manage-customers')" prepend-icon="mdi-account-group" title="Customers" :to="{ name: 'AdminCustomers' }">
                     </v-list-item>
                 </v-list-group>
+
+                <!-- ============================================ -->
+                <!-- REPORTS & ANALYTICS -->
+                <!-- ============================================ -->
+                <v-list-item v-if="hasPermission('view-reports')" link router prepend-icon="mdi-chart-box"
+                    title="Reports & Analytics" :to="{ name: 'AdminReports' }" value="Reports" exact>
+                </v-list-item>
 
                 <!-- ============================================ -->
                 <!-- SYSTEM & ADMINISTRATION -->

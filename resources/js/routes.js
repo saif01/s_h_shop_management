@@ -88,6 +88,30 @@ const routes = [
                 name: 'AdminCustomers',
                 meta: { title: 'Customer Management', permissions: ['manage-customers'] }
             },
+            {
+                path: 'sales',
+                component: () => import('./components/admin/sales/AdminSales.vue'),
+                name: 'AdminSales',
+                meta: { title: 'Sales / POS', permissions: ['view-sales'] }
+            },
+            {
+                path: 'units',
+                component: () => import('./components/admin/products/AdminUnits.vue'),
+                name: 'AdminUnits',
+                meta: { title: 'Unit Management', permissions: ['manage-units'] }
+            },
+            {
+                path: 'warehouses',
+                component: () => import('./components/admin/stock/AdminWarehouses.vue'),
+                name: 'AdminWarehouses',
+                meta: { title: 'Warehouse Management', permissions: ['manage-warehouses'] }
+            },
+            {
+                path: 'reports',
+                component: () => import('./components/admin/reports/AdminReports.vue'),
+                name: 'AdminReports',
+                meta: { title: 'Reports & Analytics', permissions: ['view-reports'] }
+            },
 
         ]
     },
