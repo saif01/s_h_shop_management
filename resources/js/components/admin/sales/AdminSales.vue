@@ -152,6 +152,7 @@ import SaleDialog from './dialogs/SaleDialog.vue';
 import ViewSaleDialog from './dialogs/ViewSaleDialog.vue';
 import DatePicker from '@/components/common/DatePicker.vue';
 import adminPaginationMixin from '@/mixins/adminPaginationMixin';
+import { formatDateDDMMYYYY } from '@/utils/formatters';
 
 export default {
     name: 'AdminSales',
@@ -305,6 +306,7 @@ export default {
             this.pagination.current_page = 1; // Reset to first page when filter changes
             this.fetchSales();
         },
+        formatDateDDMMYYYY,
         getStatusColor(status) {
             const colors = {
                 draft: 'grey',

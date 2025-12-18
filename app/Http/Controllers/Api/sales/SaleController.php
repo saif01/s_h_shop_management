@@ -295,6 +295,56 @@ class SaleController extends Controller
         $isDraft = $status === 'draft';
 
         $sale = DB::transaction(function () use ($sale, $validated, $subtotal, $discountAmount, $taxAmount, $shipping, $totalAmount, $paidAmount, $balance, $status, $isDraft) {
+            // Store old sale status and items for stock restoration
+            $oldStatus = $sale->status;
+            $oldIsDraft = $oldStatus === 'draft';
+            $oldItems = $sale->items()->with('product')->get();
+            $oldWarehouseId = $sale->warehouse_id;
+
+            // Restore stock from old items if sale was not a draft
+            if (!$oldIsDraft && $oldItems->count() > 0) {
+                foreach ($oldItems as $oldItem) {
+                    $oldStock = Stock::where('product_id', $oldItem->product_id)
+                        ->where('warehouse_id', $oldWarehouseId)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($oldStock) {
+                        $oldQty = $oldStock->quantity;
+                        $newQty = $oldQty + $oldItem->quantity;
+                        $oldStock->update([
+                            'quantity' => $newQty,
+                            'total_value' => $newQty * $oldStock->average_cost,
+                        ]);
+
+                        // Create reversal ledger entry
+                        StockLedger::create([
+                            'product_id' => $oldItem->product_id,
+                            'warehouse_id' => $oldWarehouseId,
+                            'type' => 'in',
+                            'reference_type' => 'sales',
+                            'reference_id' => $sale->id,
+                            'reference_number' => $sale->invoice_number . '-REV',
+                            'quantity' => $oldItem->quantity,
+                            'unit_cost' => $oldStock->average_cost,
+                            'weighted_avg_cost' => $oldStock->average_cost,
+                            'total_cost' => $oldItem->quantity * $oldStock->average_cost,
+                            'balance_after' => $newQty,
+                            'value_before' => $oldQty * $oldStock->average_cost,
+                            'value_after' => $newQty * $oldStock->average_cost,
+                            'created_by' => auth()->id(),
+                            'transaction_date' => now()->toDateString(),
+                        ]);
+                    }
+                }
+            }
+
+            // Delete old ledger entries (optional - you may want to keep them for audit)
+            // StockLedger::where('reference_type', 'sales')
+            //     ->where('reference_id', $sale->id)
+            //     ->where('type', 'out')
+            //     ->delete();
+
             // Update sale
             $sale->update([
                 'customer_id' => $validated['customer_id'],
@@ -383,12 +433,12 @@ class SaleController extends Controller
                 }
             }
 
-            // Skip payment creation/update for draft sales
-            if (!$isDraft && $paidAmount > 0) {
-                $payment = Payment::where('reference_type', 'sale')
-                    ->where('reference_id', $sale->id)
-                    ->first();
+            // Handle payment creation/update/delete
+            $payment = Payment::where('reference_type', 'sale')
+                ->where('reference_id', $sale->id)
+                ->first();
 
+            if (!$isDraft && $paidAmount > 0) {
                 if ($payment) {
                     $payment->update([
                         'amount' => $paidAmount,
@@ -411,6 +461,9 @@ class SaleController extends Controller
                         'created_by' => auth()->id(),
                     ]);
                 }
+            } elseif ($payment) {
+                // Delete payment if paid_amount is 0 or sale is draft
+                $payment->delete();
             }
 
             return $sale->fresh();
@@ -427,7 +480,56 @@ class SaleController extends Controller
             return response()->json(['message' => 'Only draft/pending sales can be deleted'], 422);
         }
 
-        $sale->delete();
+        DB::transaction(function () use ($sale) {
+            $isDraft = $sale->status === 'draft';
+            $items = $sale->items()->with('product')->get();
+
+            // Restore stock if sale was not a draft
+            if (!$isDraft && $items->count() > 0) {
+                foreach ($items as $item) {
+                    $stock = Stock::where('product_id', $item->product_id)
+                        ->where('warehouse_id', $sale->warehouse_id)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($stock) {
+                        $oldQty = $stock->quantity;
+                        $newQty = $oldQty + $item->quantity;
+                        $stock->update([
+                            'quantity' => $newQty,
+                            'total_value' => $newQty * $stock->average_cost,
+                        ]);
+
+                        // Create reversal ledger entry
+                        StockLedger::create([
+                            'product_id' => $item->product_id,
+                            'warehouse_id' => $sale->warehouse_id,
+                            'type' => 'in',
+                            'reference_type' => 'sales',
+                            'reference_id' => $sale->id,
+                            'reference_number' => $sale->invoice_number . '-DEL',
+                            'quantity' => $item->quantity,
+                            'unit_cost' => $stock->average_cost,
+                            'weighted_avg_cost' => $stock->average_cost,
+                            'total_cost' => $item->quantity * $stock->average_cost,
+                            'balance_after' => $newQty,
+                            'value_before' => $oldQty * $stock->average_cost,
+                            'value_after' => $newQty * $stock->average_cost,
+                            'created_by' => auth()->id(),
+                            'transaction_date' => now()->toDateString(),
+                        ]);
+                    }
+                }
+            }
+
+            // Delete associated payments
+            Payment::where('reference_type', 'sale')
+                ->where('reference_id', $sale->id)
+                ->delete();
+
+            // Delete the sale (soft delete)
+            $sale->delete();
+        });
 
         return response()->json(['message' => 'Sale deleted']);
     }
