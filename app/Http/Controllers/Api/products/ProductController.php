@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Unit;
+use App\Models\Warehouse;
 use App\Support\MediaPath;
 use Illuminate\Http\Request;
 
@@ -13,7 +14,7 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::with(['category', 'unit'])
+        $query = Product::with(['category', 'unit', 'stocks.warehouse'])
             ->withStockQuantity(); // Efficiently load stock quantity with single query
 
         // Filter by category
@@ -24,6 +25,13 @@ class ProductController extends Controller
         // Filter by active status
         if ($request->has('is_active')) {
             $query->where('is_active', $request->is_active);
+        }
+
+        // Filter by warehouse
+        if ($request->has('warehouse_id')) {
+            $query->whereHas('stocks', function ($q) use ($request) {
+                $q->where('warehouse_id', $request->warehouse_id);
+            });
         }
 
         // Search by name, SKU, barcode, brand, manufacturer or description
@@ -60,7 +68,19 @@ class ProductController extends Controller
         $products = $query->paginate($request->get('per_page', 10));
 
         $products->getCollection()->transform(function ($product) {
-            return $this->transformProductImage($product);
+            $product = $this->transformProductImage($product);
+            // Add stock summary per warehouse
+            $product->stock_by_warehouse = $product->stocks->map(function ($stock) {
+                return [
+                    'warehouse_id' => $stock->warehouse_id,
+                    'warehouse_name' => $stock->warehouse->name ?? null,
+                    'warehouse_code' => $stock->warehouse->code ?? null,
+                    'quantity' => $stock->quantity,
+                    'average_cost' => $stock->average_cost,
+                    'total_value' => $stock->total_value,
+                ];
+            });
+            return $product;
         });
         
         return response()->json($products);
@@ -106,8 +126,20 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        $product->load(['category', 'unit']);
-        return response()->json($this->transformProductImage($product));
+        $product->load(['category', 'unit', 'stocks.warehouse']);
+        $product = $this->transformProductImage($product);
+        // Add stock summary per warehouse
+        $product->stock_by_warehouse = $product->stocks->map(function ($stock) {
+            return [
+                'warehouse_id' => $stock->warehouse_id,
+                'warehouse_name' => $stock->warehouse->name ?? null,
+                'warehouse_code' => $stock->warehouse->code ?? null,
+                'quantity' => $stock->quantity,
+                'average_cost' => $stock->average_cost,
+                'total_value' => $stock->total_value,
+            ];
+        });
+        return response()->json($product);
     }
 
     public function update(Request $request, Product $product)
@@ -135,9 +167,20 @@ class ProductController extends Controller
         }
 
         $product->update($validated);
-        $product->load(['category', 'unit']);
-        
-        return response()->json($this->transformProductImage($product));
+        $product->load(['category', 'unit', 'stocks.warehouse']);
+        $product = $this->transformProductImage($product);
+        // Add stock summary per warehouse
+        $product->stock_by_warehouse = $product->stocks->map(function ($stock) {
+            return [
+                'warehouse_id' => $stock->warehouse_id,
+                'warehouse_name' => $stock->warehouse->name ?? null,
+                'warehouse_code' => $stock->warehouse->code ?? null,
+                'quantity' => $stock->quantity,
+                'average_cost' => $stock->average_cost,
+                'total_value' => $stock->total_value,
+            ];
+        });
+        return response()->json($product);
     }
 
     public function destroy(Product $product)
@@ -188,6 +231,23 @@ class ProductController extends Controller
 
         return response()->json([
             'units' => $units
+        ]);
+    }
+
+    public function warehouses()
+    {
+        $warehouses = Warehouse::where('is_active', true)
+            ->orderBy('name')
+            ->get()
+            ->map(function ($warehouse) {
+                return [
+                    'value' => $warehouse->id,
+                    'label' => $warehouse->name . ($warehouse->code ? ' (' . $warehouse->code . ')' : ''),
+                ];
+            });
+
+        return response()->json([
+            'warehouses' => $warehouses
         ]);
     }
 

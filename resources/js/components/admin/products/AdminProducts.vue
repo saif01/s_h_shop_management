@@ -60,6 +60,7 @@
                             <th>Category</th>
                             <th class="text-end">Purchase</th>
                             <th class="text-end">Sale</th>
+                            <th class="text-end">Total Stock</th>
                             <th class="text-end">Min Stock</th>
                             <th>Status</th>
                             <th>Actions</th>
@@ -74,6 +75,20 @@
                             <td>{{ product.category?.name || '-' }}</td>
                             <td class="text-end">৳{{ parseFloat(product.purchase_price || 0).toFixed(2) }}</td>
                             <td class="text-end">৳{{ parseFloat(product.sale_price || 0).toFixed(2) }}</td>
+                            <td class="text-end">
+                                <v-chip size="small" :color="getStockStatusColor(product)" variant="tonal">
+                                    {{ product.stock_quantity || 0 }}
+                                </v-chip>
+                                <v-tooltip v-if="product.stock_by_warehouse && product.stock_by_warehouse.length > 0"
+                                    activator="parent" location="top">
+                                    <div class="text-caption">
+                                        <div v-for="stock in product.stock_by_warehouse" :key="stock.warehouse_id"
+                                            class="py-1">
+                                            <strong>{{ stock.warehouse_name }}:</strong> {{ stock.quantity || 0 }}
+                                        </div>
+                                    </div>
+                                </v-tooltip>
+                            </td>
                             <td class="text-end">{{ product.minimum_stock_level || 0 }}</td>
                             <td>
                                 <v-chip size="small" :color="product.is_active ? 'success' : 'error'" variant="tonal">
@@ -87,7 +102,7 @@
                             </td>
                         </tr>
                         <tr v-if="products.length === 0">
-                            <td colspan="8" class="text-center py-4">No products found</td>
+                            <td colspan="9" class="text-center py-4">No products found</td>
                         </tr>
                     </tbody>
                 </v-table>
@@ -276,6 +291,13 @@ export default {
             } else {
                 alert(message);
             }
+        },
+        getStockStatusColor(product) {
+            const stockQty = product.stock_quantity || 0;
+            const minStock = product.minimum_stock_level || 0;
+            if (stockQty <= 0) return 'error';
+            if (minStock > 0 && stockQty <= minStock) return 'warning';
+            return 'success';
         },
     },
 };

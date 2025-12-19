@@ -29,12 +29,7 @@
                         </v-col>
                         <v-col cols="12" sm="6" class="pa-2">
                             <v-text-field v-model="form.barcode" label="Barcode" density="compact" variant="outlined"
-                                hide-details>
-                                <template #append-inner>
-                                    <v-btn icon="mdi-refresh" size="x-small" variant="text" @click="generateBarcode"
-                                        :title="'Generate Barcode'" />
-                                </template>
-                            </v-text-field>
+                                hide-details />
                         </v-col>
                         <v-col cols="12" sm="6" class="pa-2">
                             <v-text-field v-model="form.brand" label="Brand" density="compact" variant="outlined"
@@ -77,6 +72,47 @@
                         </v-col>
                     </v-row>
                 </v-form>
+
+                <!-- Stock Information Section -->
+                <v-divider class="my-3" />
+                <div class="text-subtitle-2 font-weight-medium mb-2">Stock by Warehouse</div>
+                <v-card variant="outlined" class="mb-2">
+                    <v-card-text class="pa-2">
+                        <div v-if="stockByWarehouse && stockByWarehouse.length > 0">
+                            <v-table density="compact">
+                                <thead>
+                                    <tr>
+                                        <th>Warehouse</th>
+                                        <th class="text-end">Quantity</th>
+                                        <th class="text-end">Avg Cost</th>
+                                        <th class="text-end">Total Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="stock in stockByWarehouse" :key="stock.warehouse_id">
+                                        <td>
+                                            <span class="font-weight-medium">{{ stock.warehouse_name }}</span>
+                                            <span v-if="stock.warehouse_code" class="text-caption text-grey ml-1">
+                                                ({{ stock.warehouse_code }})
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <v-chip size="small" :color="getStockStatusColor(stock.quantity)"
+                                                variant="tonal">
+                                                {{ stock.quantity || 0 }}
+                                            </v-chip>
+                                        </td>
+                                        <td class="text-end">৳{{ parseFloat(stock.average_cost || 0).toFixed(2) }}</td>
+                                        <td class="text-end">৳{{ parseFloat(stock.total_value || 0).toFixed(2) }}</td>
+                                    </tr>
+                                </tbody>
+                            </v-table>
+                        </div>
+                        <div v-else class="text-center text-grey py-2">
+                            <span class="text-caption">No stock information available</span>
+                        </div>
+                    </v-card-text>
+                </v-card>
             </v-card-text>
             <v-divider />
             <v-card-actions class="pa-2 justify-end">
@@ -106,6 +142,7 @@ export default {
             saving: false,
             categoryOptions: [],
             unitOptions: [],
+            stockByWarehouse: [],
             rules: {
                 required: v => !!v || 'Required',
             },
@@ -121,6 +158,12 @@ export default {
             immediate: true,
             handler(newVal) {
                 this.form = newVal ? { ...this.getEmptyForm(), ...newVal } : this.getEmptyForm();
+                // Load stock information if product exists
+                if (newVal && newVal.stock_by_warehouse) {
+                    this.stockByWarehouse = newVal.stock_by_warehouse;
+                } else {
+                    this.stockByWarehouse = [];
+                }
             },
         },
     },
@@ -176,31 +219,6 @@ export default {
             }
             this.form.sku = sku;
         },
-        generateBarcode() {
-            // Generate numeric barcode (typically 8-13 digits)
-            // Use SKU if available, otherwise generate from product name or random
-            let barcode = '';
-            if (this.form.sku && this.form.sku.trim()) {
-                // Convert SKU to numeric barcode (remove non-numeric, pad to 12 digits)
-                const numeric = this.form.sku.replace(/\D/g, '');
-                if (numeric.length > 0) {
-                    barcode = numeric.padEnd(12, '0').substring(0, 12);
-                } else {
-                    barcode = Date.now().toString().slice(-12);
-                }
-            } else if (this.form.name && this.form.name.trim()) {
-                // Generate from product name hash
-                const nameHash = this.form.name.split('').reduce((acc, char) => {
-                    return acc + char.charCodeAt(0);
-                }, 0);
-                barcode = nameHash.toString().padEnd(12, '0').substring(0, 12);
-            } else {
-                // Generate random 12-digit barcode
-                const random = Math.floor(Math.random() * 1000000000000);
-                barcode = random.toString().padStart(12, '0');
-            }
-            this.form.barcode = barcode;
-        },
         close() {
             this.$emit('update:modelValue', false);
         },
@@ -210,8 +228,14 @@ export default {
             this.saving = true;
             try {
                 const payload = { ...this.form };
+                // Remove stock_by_warehouse from payload as it's read-only
+                delete payload.stock_by_warehouse;
                 if (this.isEdit) {
-                    await axios.put(`/api/v1/products/${this.form.id}`, payload);
+                    const response = await axios.put(`/api/v1/products/${this.form.id}`, payload);
+                    // Update stock information from response
+                    if (response.data && response.data.stock_by_warehouse) {
+                        this.stockByWarehouse = response.data.stock_by_warehouse;
+                    }
                 } else {
                     await axios.post('/api/v1/products', payload);
                 }
@@ -223,6 +247,12 @@ export default {
             } finally {
                 this.saving = false;
             }
+        },
+        getStockStatusColor(quantity) {
+            if (!this.form.minimum_stock_level) return 'default';
+            if (quantity <= 0) return 'error';
+            if (quantity <= this.form.minimum_stock_level) return 'warning';
+            return 'success';
         },
     },
 };

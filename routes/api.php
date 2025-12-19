@@ -111,6 +111,7 @@ Route::prefix('v1')->group(function () {
         // Products & Categories
         Route::get('products/categories', [ProductController::class, 'categories']);
         Route::get('products/units', [ProductController::class, 'units']);
+        Route::get('products/warehouses', [ProductController::class, 'warehouses']);
         Route::apiResource('products', ProductController::class);
         Route::apiResource('categories', CategoryController::class);
 
