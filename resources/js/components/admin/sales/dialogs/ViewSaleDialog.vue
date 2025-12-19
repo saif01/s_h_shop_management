@@ -192,7 +192,7 @@
                                             class="invoice-totals-label text-subtitle-1 font-weight-bold">Total:</span>
                                         <span
                                             class="invoice-totals-value text-subtitle-1 font-weight-bold text-primary">৳{{
-                                                parseFloat(saleData.total_amount || 0).toFixed(2) }}</span>
+                                                calculatedTotalAmount.toFixed(2) }}</span>
                                     </div>
 
                                     <div class="invoice-totals-row invoice-totals-paid">
@@ -290,6 +290,23 @@ export default {
             const itemsTax = this.calculatedItemsTax;
             const orderTax = parseFloat(this.saleData?.tax_amount || 0);
             return itemsTax + orderTax;
+        },
+        calculatedTotalAmount() {
+            if (!this.saleData) return 0;
+
+            // Calculate total using the same formula as backend:
+            // total = subtotal - discount_amount + tax_amount + shipping_cost
+            // But we need to ensure we include ALL taxes (both item taxes and order tax)
+            const subtotal = parseFloat(this.saleData.subtotal || 0);
+            const discountAmount = parseFloat(this.saleData.discount_amount || 0);
+            const shippingCost = parseFloat(this.saleData.shipping_cost || 0);
+
+            // Use calculatedTotalTax which includes both item taxes and order tax
+            // This ensures the total always includes all taxes
+            const totalTax = this.calculatedTotalTax;
+
+            const total = subtotal - discountAmount + totalTax + shippingCost;
+            return parseFloat(total.toFixed(2));
         },
     },
     methods: {
