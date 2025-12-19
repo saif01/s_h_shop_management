@@ -25,6 +25,24 @@
                                         prepend-inner-icon="mdi-magnify" clearable autofocus variant="outlined"
                                         hide-details @keyup.enter="searchProducts" @click:clear="searchResults = []" />
 
+                                    <!-- Most Sold Products Chips -->
+                                    <div v-if="mostSoldProducts.length > 0 && searchResults.length === 0" class="mt-3">
+                                        <div class="text-caption text-grey mb-2">
+                                            <v-icon size="14" class="mr-1">mdi-fire</v-icon>
+                                            Most Sold Products
+                                        </div>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <v-chip v-for="product in mostSoldProducts" :key="product.id"
+                                                color="primary" variant="flat" size="small" class="product-chip"
+                                                @click="addToCart(product)"
+                                                :disabled="!product.stock_quantity || product.stock_quantity <= 0">
+                                                <v-icon size="14" class="mr-1">mdi-package-variant</v-icon>
+                                                {{ product.name }}
+                                                <span class="ml-1 text-caption">(৳{{ product.sale_price }})</span>
+                                            </v-chip>
+                                        </div>
+                                    </div>
+
                                     <!-- Search Results -->
                                     <div v-if="searchResults.length > 0" class="search-results-container">
                                         <v-list class="search-results">
@@ -267,6 +285,7 @@ export default {
             cartItems: [],
             productSearch: '',
             searchResults: [],
+            mostSoldProducts: [],
             customers: [],
             warehouses: [],
             saving: false,
@@ -303,6 +322,7 @@ export default {
         modelValue(val) {
             if (val) {
                 this.fetchOptions();
+                this.fetchMostSoldProducts();
                 if (!this.sale || !this.sale.id) {
                     this.form = this.getEmptyForm();
                     this.cartItems = [];
@@ -343,6 +363,41 @@ export default {
                 console.error('Failed to load options', error);
             }
         },
+        async fetchMostSoldProducts() {
+            try {
+                // Try to fetch most sold products - first try with sort parameter
+                const { data } = await axios.get('/api/v1/products', {
+                    params: {
+                        per_page: 10,
+                        is_active: 1,
+                        sort: 'most_sold',
+                        order: 'desc'
+                    },
+                });
+
+                let products = data.data || data.products || [];
+
+                // If no results with most_sold sort, try with popular or just active products with stock
+                if (products.length === 0) {
+                    const { data: fallbackData } = await axios.get('/api/v1/products', {
+                        params: {
+                            per_page: 10,
+                            is_active: 1,
+                            has_stock: 1
+                        },
+                    });
+                    products = fallbackData.data || fallbackData.products || [];
+                }
+
+                // Filter to only show products with stock and limit to 10
+                this.mostSoldProducts = products
+                    .filter(p => p.stock_quantity > 0)
+                    .slice(0, 10);
+            } catch (error) {
+                console.error('Failed to load most sold products', error);
+                // Silently fail - this is a nice-to-have feature
+            }
+        },
         async searchProducts() {
             if (!this.productSearch) return;
             try {
@@ -371,6 +426,21 @@ export default {
                     tax: parseFloat(taxAmount.toFixed(2)),
                     total: parseFloat(product.sale_price) + taxAmount,
                 });
+            }
+
+            // Auto-select warehouse if not already selected
+            if (!this.form.warehouse_id && product.stock_by_warehouse && product.stock_by_warehouse.length > 0) {
+                // Find warehouse with highest stock, or first available warehouse
+                const warehouseWithStock = product.stock_by_warehouse
+                    .filter(stock => stock.quantity > 0)
+                    .sort((a, b) => (b.quantity || 0) - (a.quantity || 0))[0];
+
+                if (warehouseWithStock && warehouseWithStock.warehouse_id) {
+                    this.form.warehouse_id = warehouseWithStock.warehouse_id;
+                } else if (product.stock_by_warehouse[0] && product.stock_by_warehouse[0].warehouse_id) {
+                    // Fallback to first warehouse even if stock is 0
+                    this.form.warehouse_id = product.stock_by_warehouse[0].warehouse_id;
+                }
             }
 
             this.productSearch = '';
@@ -681,6 +751,21 @@ export default {
 
 .search-item:hover {
     background-color: rgba(25, 118, 210, 0.08);
+}
+
+.product-chip {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.product-chip:hover:not(.v-chip--disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(25, 118, 210, 0.3);
+}
+
+.product-chip:active:not(.v-chip--disabled) {
+    transform: translateY(0);
 }
 
 .totals-section {
