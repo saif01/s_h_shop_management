@@ -109,13 +109,13 @@
                                     <td class="text-grey text-caption">{{ index + 1 }}</td>
                                     <td>
                                         <div class="text-body-2 font-weight-medium">{{ item.product?.name || 'Unknown'
-                                            }}</div>
+                                        }}</div>
                                         <div v-if="item.product?.sku" class="text-caption text-grey">SKU: {{
                                             item.product.sku }}</div>
                                     </td>
                                     <td class="text-center text-body-2">{{ item.quantity }}</td>
                                     <td class="text-right text-body-2">৳{{ parseFloat(item.unit_price || 0).toFixed(2)
-                                        }}</td>
+                                    }}</td>
                                     <td class="text-right text-body-2 text-error">-৳{{ parseFloat(item.discount ||
                                         0).toFixed(2) }}</td>
                                     <td class="text-right text-body-2">৳{{ parseFloat(item.tax || 0).toFixed(2) }}</td>
@@ -162,7 +162,7 @@
                                     <div v-if="calculatedItemsTax > 0" class="invoice-totals-row">
                                         <span class="invoice-totals-label text-caption">Item Tax:</span>
                                         <span class="invoice-totals-value text-body-2">৳{{ calculatedItemsTax.toFixed(2)
-                                            }}</span>
+                                        }}</span>
                                     </div>
 
                                     <div v-if="saleData.tax_amount > 0" class="invoice-totals-row">
