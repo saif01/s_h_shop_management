@@ -186,21 +186,53 @@ npm run build
   - Product Image (optional)
   - Status (Active/Inactive)
   - Description field
-- **Stock Integration**: ✅ **Enhanced with stock and warehouse information**:
-  - View total stock quantity across all warehouses
-  - Stock breakdown by warehouse in product dialog
-  - Stock quantities, average costs, and total values per warehouse
-  - Direct stock adjustment from product dialog
-  - Color-coded stock status indicators
-  - Warehouse filtering in product list
+  - Advanced search by name, SKU, barcode, brand, or description
+  - Sortable columns (name, SKU, prices, stock level, etc.)
+  - Pagination with customizable page sizes
+- **Stock Integration**: ✅ **Comprehensive stock and warehouse integration**:
+  - **Total Stock Display**: View total stock quantity across all warehouses in product list
+  - **Stock Breakdown by Warehouse**: Detailed stock information per warehouse in product dialog:
+    - Stock quantity per warehouse
+    - Average cost per warehouse
+    - Total value per warehouse
+    - Warehouse name and code display
+  - **Direct Stock Adjustment**: Stock adjustment dialog with three adjustment types:
+    - Set Quantity: Set exact stock quantity
+    - Add Stock: Add to existing quantity
+    - Subtract Stock: Subtract from existing quantity
+    - Warehouse selection for adjustments
+    - Optional unit cost and notes
+    - Automatic stock ledger entry creation
+  - **Color-Coded Stock Status**: Visual indicators for stock levels:
+    - Red: Out of stock (quantity = 0)
+    - Yellow: Low stock (below minimum level)
+    - Green: Sufficient stock
+  - **Warehouse Filtering**: Filter products by warehouse in product list
+  - **Efficient Stock Queries**: Optimized database queries to prevent N+1 problems
+  - **Real-time Stock Updates**: Automatic stock refresh after adjustments
+  - **Stock Information in Product View**: Complete stock breakdown in product view dialog
 - **Category Management**: Hierarchical categories with icons and images
+  - Category view dialog with audit information
+  - Created/Updated by tracking
+  - Category status management
 - **Unit Management**: Define units of measurement (kg, pcs, ltr, box, etc.)
+  - Complete CRUD operations
+  - Unit selection in product forms
 - **Bulk Operations**: Excel/CSV import support (placeholder ready)
 - **Barcode Printing**: Barcode generation for products (placeholder ready)
 
 #### C) Stock / Inventory Management ✅
 - **Stock Tracking**: Real-time stock levels per warehouse
-- **Stock Ledger**: Detailed stock in/out transaction history
+- **Stock Ledger**: ✅ **Enhanced stock ledger with advanced features**:
+  - Detailed stock in/out transaction history with comprehensive filtering
+  - Date range filtering with DatePicker components (from/to dates)
+  - Filter by product, warehouse, transaction type (in/out), and reference type
+  - Search by reference number or product name/SKU
+  - Sortable columns (date, quantity, created at, etc.)
+  - Sortable "Created At" column with AM/PM time format
+  - Excel export functionality - export all filtered data to CSV/Excel format
+  - Pagination with "Show All" option
+  - Real-time transaction tracking with creator information
 - **Low Stock Alerts**: Automatic alerts when stock falls below minimum level
 - **Stock Adjustments**: ✅ **Direct stock adjustment from product dialog** - Manual corrections for damage, loss, or discrepancies with three adjustment types:
   - Set Quantity: Set exact stock quantity
@@ -242,19 +274,44 @@ npm run build
   - Shopping cart with real-time calculations
   - Customer selection (or Walk-in customers)
   - Warehouse selection for stock management
+  - Real-time stock validation
 - **Invoice Management**: 
   - Invoice date and due date
   - Item-level discount and tax
   - Invoice-level discount, additional tax, and shipping cost
   - Real-time total calculations
+  - Invoice number generation (auto or manual)
+  - Notes and reference fields
 - **Payment Processing**:
   - Multiple payment methods: cash, card, mobile banking, bank transfer, cheque
   - Paid/Due amount tracking
   - Partial payment support
   - Credit sales (due tracking)
+  - Payment status management (draft, pending, partial, paid, cancelled)
+- **Sales Management Interface**: ✅ **Enhanced sales list with advanced features**:
+  - **Advanced Filtering**:
+    - Status filtering (draft, pending, partial, paid, cancelled)
+    - Date range filtering with DatePicker components (from/to dates)
+    - Search by invoice number or customer name
+  - **Sortable Columns**: Sort by invoice number, date, total amount, paid amount, due amount, or status
+  - **Pagination**: 
+    - Customizable page sizes (10, 25, 50, 100, 500)
+    - "Show All" option to display all records
+    - Total records display
+  - **Sales Actions**:
+    - View sale details in dedicated view dialog
+    - Edit existing sales
+    - Delete sales with confirmation
+    - Print invoices (A4 and POS thermal receipt)
+  - **Sales Display**:
+    - Customer information (or Walk-in indicator)
+    - Invoice date with DD/MM/YYYY format
+    - Total, paid, and due amounts with currency formatting
+    - Color-coded due amounts (red for outstanding, green for paid)
+    - Status chips with color coding
 - **Sales Return**: Process returns and auto-restock (placeholder ready)
 - **Invoice Printing**: A4 and POS thermal receipt printing (placeholder ready)
-- **Sales History**: Complete sales transaction history with filtering
+- **Sales History**: Complete sales transaction history with comprehensive filtering and sorting
 
 #### F) Customer & Due Management ✅
 - **Customer Management**: Complete customer CRUD with:
@@ -486,11 +543,27 @@ All admin endpoints require authentication via Bearer token and appropriate perm
 - `GET /api/v1/auth/user` - Get current authenticated user with roles/permissions
 
 **Sales Management:**
-- `GET /api/v1/sales` - List sales with filtering and pagination (requires `view-sales`)
+- `GET /api/v1/sales` - List sales with advanced filtering, sorting, and pagination (requires `view-sales`)
+  - **Filtering**:
+    - Filter by `customer_id` to show sales for specific customer
+    - Filter by `status` (draft, pending, partial, paid, cancelled)
+    - Filter by date range: `from_date`, `to_date` (YYYY-MM-DD format)
+    - Search by `search` parameter (searches invoice number or notes)
+  - **Sorting**: Default sorted by invoice_date (desc) and id (desc)
+  - **Pagination**: Use `per_page` parameter (default: 10)
+  - **Response**: Includes customer, warehouse, and items with product details
 - `POST /api/v1/sales` - Create new sale with items (requires `create-sales`)
-- `GET /api/v1/sales/{id}` - Get sale details with items (requires `view-sales`)
+  - Request body includes: invoice_number, invoice_date, due_date, customer_id, warehouse_id, items array, discounts, taxes, etc.
+  - Automatically creates stock ledger entries for stock out
+  - Updates stock quantities in warehouse
+- `GET /api/v1/sales/{id}` - Get sale details with items and relationships (requires `view-sales`)
+  - Includes customer, warehouse, and items with full product information
 - `PUT /api/v1/sales/{id}` - Update sale (requires `edit-sales`)
+  - Updates sale and recalculates totals
+  - Updates stock ledger if quantities change
 - `DELETE /api/v1/sales/{id}` - Delete sale (requires `delete-sales`)
+  - Deletes sale and related items
+  - Reverses stock ledger entries (stock in)
 
 **Purchase Management:**
 - `GET /api/v1/purchases` - List purchases (requires `view-purchases`)
@@ -500,17 +573,30 @@ All admin endpoints require authentication via Bearer token and appropriate perm
 - `DELETE /api/v1/purchases/{id}` - Delete purchase (requires `delete-purchases`)
 
 **Product Management:**
-- `GET /api/v1/products` - List products with search, filtering, and warehouse filtering (requires `view-products`)
-  - Includes stock quantities and warehouse breakdown in response
-  - Filter by `warehouse_id` to show products in specific warehouse
+- `GET /api/v1/products` - List products with advanced search, filtering, and sorting (requires `view-products`)
+  - **Search**: Search by `search` parameter (searches name, SKU, barcode, brand, description)
+  - **Filtering**: 
+    - Filter by `category_id` to show products in specific category
+    - Filter by `warehouse_id` to show products available in specific warehouse
+    - Filter by `is_active` to show active/inactive products
+  - **Sorting**: Sort by `sort_by` and `sort_direction` parameters
+    - Allowed fields: id, name, sku, barcode, brand, purchase_price, sale_price, tax_rate, minimum_stock_level, is_active, order, created_at, updated_at
+  - **Pagination**: Use `per_page` parameter for pagination
+  - **Response**: Includes `stock_quantity` (total across all warehouses) and `stock_by_warehouse` array with detailed warehouse breakdown
 - `POST /api/v1/products` - Create product (requires `manage-products`)
-- `GET /api/v1/products/{id}` - Get product details with stock information (requires `view-products`)
-  - Includes `stock_by_warehouse` array with warehouse details
+  - Returns created product with stock information
+- `GET /api/v1/products/{id}` - Get product details with comprehensive stock information (requires `view-products`)
+  - Includes `stock_by_warehouse` array with:
+    - Warehouse ID, name, and code
+    - Stock quantity per warehouse
+    - Average cost per warehouse
+    - Total value per warehouse
+  - Includes total `stock_quantity` across all warehouses
 - `PUT /api/v1/products/{id}` - Update product (requires `manage-products`)
-  - Returns updated product with stock information
+  - Returns updated product with refreshed stock information
 - `DELETE /api/v1/products/{id}` - Delete product (requires `manage-products`)
-- `GET /api/v1/products/categories` - Get categories for dropdown
-- `GET /api/v1/products/units` - Get units for dropdown
+- `GET /api/v1/products/categories` - Get categories for dropdown (requires `view-products`)
+- `GET /api/v1/products/units` - Get units for dropdown (requires `view-products`)
 - `GET /api/v1/products/warehouses` - Get warehouses for dropdown (requires `view-products`)
 
 **Category Management:**
@@ -543,8 +629,14 @@ All admin endpoints require authentication via Bearer token and appropriate perm
   - Creates stock ledger entry for audit trail
   - Request body: `product_id`, `warehouse_id`, `quantity`, `adjustment_type`, `unit_cost` (optional), `notes` (optional)
 - `GET /api/v1/stocks/{id}` - Get stock details (requires `view-stock-ledger`)
-- `GET /api/v1/stock-ledger` - List stock transactions (requires `view-stock-ledger`)
+- `GET /api/v1/stock-ledger` - List stock transactions with filtering and pagination (requires `view-stock-ledger`)
+  - Filter by `product_id`, `warehouse_id`, `type` (in/out), `reference_type`
+  - Filter by date range: `date_from`, `date_to`
+  - Search by `search` parameter (searches reference number, product name, or SKU)
+  - Sort by `sort_by` and `sort_direction` parameters
+  - Pagination with `per_page` parameter
 - `GET /api/v1/stock-ledger/{id}` - Get ledger entry details (requires `view-stock-ledger`)
+- `GET /api/v1/stock-ledger/warehouses` - Get warehouses list for filtering (requires `view-stock-ledger`)
 
 **Supplier Management:**
 - `GET /api/v1/suppliers` - List suppliers (requires `manage-suppliers`)
@@ -727,12 +819,37 @@ public/
 - Advanced audit trail
 
 ### Recently Implemented Features ✅
-- **Stock Adjustment UI**: Direct stock adjustment from product dialog with warehouse selection
-- **Product-Stock Integration**: Stock information displayed in product management interface
-- **Warehouse Filtering**: Filter products by warehouse in product list
-- **Stock Status Indicators**: Color-coded stock status (out of stock, low stock, sufficient)
-- **Stock Breakdown View**: Detailed stock information per warehouse in product dialog
-- **Real-time Stock Updates**: Automatic stock refresh after adjustments
+- **Product Management Enhancements**:
+  - **Stock Integration**: Complete stock and warehouse integration in product management
+  - **Stock Adjustment UI**: Direct stock adjustment from product dialog with warehouse selection
+  - **Product-Stock Integration**: Stock information displayed in product management interface
+  - **Warehouse Filtering**: Filter products by warehouse in product list
+  - **Stock Status Indicators**: Color-coded stock status (out of stock, low stock, sufficient)
+  - **Stock Breakdown View**: Detailed stock information per warehouse in product dialog
+  - **Real-time Stock Updates**: Automatic stock refresh after adjustments
+  - **Efficient Stock Queries**: Optimized database queries with `withStockQuantity()` scope
+  - **Product View Dialog**: Enhanced product view with complete stock breakdown
+  - **Advanced Search**: Search products by name, SKU, barcode, brand, or description
+  - **Sortable Columns**: Sort products by various fields (name, price, stock, etc.)
+  - **Category View Dialog**: Enhanced category details with audit information
+- **Sales/POS Enhancements**:
+  - **DatePicker Components**: Date range filtering with DatePicker components (from/to dates)
+  - **Advanced Filtering**: Filter sales by status, date range, and search by invoice/customer
+  - **Sortable Columns**: Sort sales by invoice number, date, amounts, and status
+  - **Pagination**: Customizable page sizes with "Show All" option
+  - **View Sale Dialog**: Dedicated dialog to view complete sale details
+  - **Invoice Printing**: Print functionality for invoices (A4 and POS formats)
+  - **Payment Tracking**: Visual indicators for paid/due amounts with color coding
+  - **Status Management**: Complete status workflow (draft → pending → partial → paid)
+  - **Improved Date Formatting**: DD/MM/YYYY format for invoice dates
+- **Enhanced Stock Ledger** (Latest):
+  - DatePicker components for date range filtering (replaces basic date inputs)
+  - Advanced filtering: product, warehouse, type, reference type, and date range
+  - Sortable "Created At" column with DD/MM/YYYY HH:MM AM/PM format
+  - Excel/CSV export functionality - export all filtered data with proper formatting
+  - Improved date filtering in backend (using `filled()` and `whereDate()`)
+  - Fixed route order for stock-ledger/warehouses endpoint
+  - Enhanced date formatting utilities (formatDateShort, formatDateDDMMYYYYHHMM)
 
 ## 🛠️ Development
 
