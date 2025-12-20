@@ -12,24 +12,18 @@
             <v-card-text>
                 <v-row>
                     <v-col cols="12" md="3">
-                        <v-select v-model="pagination.per_page" :items="perPageOptions" label="Items per page"
-                            prepend-inner-icon="mdi-format-list-numbered" variant="outlined" density="compact"
-                            @update:model-value="onPerPageChange"></v-select>
-                    </v-col>
-
-                    <v-col cols="12" md="2">
                         <v-select v-model="categoryFilter" :items="categoryOptions" item-value="value"
                             item-title="label" label="Category" clearable variant="outlined" density="compact"
-                            @update:model-value="onFilterChange" />
+                            @update:model-value="loadProducts" />
                     </v-col>
                     <v-col cols="12" md="3">
-                        <v-select v-model="activeFilter" :items="activeOptions" label="Status" clearable
-                            variant="outlined" density="compact" @update:model-value="onFilterChange" />
+                        <v-select v-model="activeFilter" :items="activeOptions" label="Filter by Status" clearable
+                            variant="outlined" density="compact" @update:model-value="loadProducts" />
                     </v-col>
-                    <v-col cols="12" md="4">
+                    <v-col cols="12" md="6">
                         <v-text-field v-model="search" label="Search by name, SKU, barcode"
                             prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" clearable
-                            @keyup.enter="loadProducts" @update:model-value="onSearchChange" />
+                            @input="loadProducts" />
                     </v-col>
                 </v-row>
             </v-card-text>
@@ -41,36 +35,28 @@
                 <span>Products</span>
                 <span class="text-caption text-grey">
                     Total Records: <strong>{{ pagination.total || 0 }}</strong>
-                    <span v-if="products.length > 0">
-                        | Showing {{ ((pagination.current_page - 1) * pagination.per_page) + 1 }} to
-                        {{ Math.min(pagination.current_page * pagination.per_page, pagination.total) }} of
-                        {{ pagination.total }}
-                    </span>
                 </span>
             </v-card-title>
             <v-card-text>
-                <div v-if="loading" class="text-center py-4">
-                    <v-progress-circular indeterminate color="primary"></v-progress-circular>
-                </div>
-                <v-table v-else>
+                <v-table>
                     <thead>
                         <tr>
-                            <th class="sortable" @click="sortBy('name')">
+                            <th class="sortable" @click="onSort('name')">
                                 <div class="sortable-header">
                                     <span>Name</span>
-                                    <v-icon v-if="isSortingBy('name')" size="18" class="sort-icon active">
-                                        {{ getSortDirection('name') === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
+                                    <v-icon v-if="sortBy === 'name'" size="18" class="sort-icon active">
+                                        {{ sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
                                     </v-icon>
                                     <v-icon v-else size="18" class="sort-icon inactive">
                                         mdi-unfold-more-horizontal
                                     </v-icon>
                                 </div>
                             </th>
-                            <th class="sortable" @click="sortBy('sku')">
+                            <th class="sortable" @click="onSort('sku')">
                                 <div class="sortable-header">
                                     <span>SKU</span>
-                                    <v-icon v-if="isSortingBy('sku')" size="18" class="sort-icon active">
-                                        {{ getSortDirection('sku') === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
+                                    <v-icon v-if="sortBy === 'sku'" size="18" class="sort-icon active">
+                                        {{ sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
                                     </v-icon>
                                     <v-icon v-else size="18" class="sort-icon inactive">
                                         mdi-unfold-more-horizontal
@@ -78,24 +64,22 @@
                                 </div>
                             </th>
                             <th>Category</th>
-                            <th class="text-end sortable" @click="sortBy('purchase_price')">
+                            <th class="text-end sortable" @click="onSort('purchase_price')">
                                 <div class="sortable-header justify-end">
                                     <span>Purchase</span>
-                                    <v-icon v-if="isSortingBy('purchase_price')" size="18" class="sort-icon active">
-                                        {{ getSortDirection('purchase_price') === 'asc' ? 'mdi-arrow-up' :
-                                            'mdi-arrow-down' }}
+                                    <v-icon v-if="sortBy === 'purchase_price'" size="18" class="sort-icon active">
+                                        {{ sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
                                     </v-icon>
                                     <v-icon v-else size="18" class="sort-icon inactive">
                                         mdi-unfold-more-horizontal
                                     </v-icon>
                                 </div>
                             </th>
-                            <th class="text-end sortable" @click="sortBy('sale_price')">
+                            <th class="text-end sortable" @click="onSort('sale_price')">
                                 <div class="sortable-header justify-end">
                                     <span>Sale</span>
-                                    <v-icon v-if="isSortingBy('sale_price')" size="18" class="sort-icon active">
-                                        {{ getSortDirection('sale_price') === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down'
-                                        }}
+                                    <v-icon v-if="sortBy === 'sale_price'" size="18" class="sort-icon active">
+                                        {{ sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
                                     </v-icon>
                                     <v-icon v-else size="18" class="sort-icon inactive">
                                         mdi-unfold-more-horizontal
@@ -103,25 +87,22 @@
                                 </div>
                             </th>
                             <th class="text-end">Total Stock</th>
-                            <th class="text-end sortable" @click="sortBy('minimum_stock_level')">
+                            <th class="text-end sortable" @click="onSort('minimum_stock_level')">
                                 <div class="sortable-header justify-end">
                                     <span>Min Stock</span>
-                                    <v-icon v-if="isSortingBy('minimum_stock_level')" size="18"
-                                        class="sort-icon active">
-                                        {{ getSortDirection('minimum_stock_level') === 'asc' ? 'mdi-arrow-up' :
-                                            'mdi-arrow-down' }}
+                                    <v-icon v-if="sortBy === 'minimum_stock_level'" size="18" class="sort-icon active">
+                                        {{ sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
                                     </v-icon>
                                     <v-icon v-else size="18" class="sort-icon inactive">
                                         mdi-unfold-more-horizontal
                                     </v-icon>
                                 </div>
                             </th>
-                            <th class="sortable" @click="sortBy('is_active')">
+                            <th class="sortable" @click="onSort('is_active')">
                                 <div class="sortable-header">
                                     <span>Status</span>
-                                    <v-icon v-if="isSortingBy('is_active')" size="18" class="sort-icon active">
-                                        {{ getSortDirection('is_active') === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down'
-                                        }}
+                                    <v-icon v-if="sortBy === 'is_active'" size="18" class="sort-icon active">
+                                        {{ sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
                                     </v-icon>
                                     <v-icon v-else size="18" class="sort-icon inactive">
                                         mdi-unfold-more-horizontal
@@ -132,68 +113,91 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="product in products" :key="product.id">
+                        <!-- Skeleton Loaders -->
+                        <tr v-if="loading" v-for="n in 5" :key="`skeleton-${n}`">
+                            <td><v-skeleton-loader type="text" width="150"></v-skeleton-loader></td>
+                            <td><v-skeleton-loader type="text" width="100"></v-skeleton-loader></td>
+                            <td><v-skeleton-loader type="text" width="120"></v-skeleton-loader></td>
+                            <td><v-skeleton-loader type="text" width="80"></v-skeleton-loader></td>
+                            <td><v-skeleton-loader type="text" width="80"></v-skeleton-loader></td>
+                            <td><v-skeleton-loader type="chip" width="60" height="24"></v-skeleton-loader></td>
+                            <td><v-skeleton-loader type="text" width="50"></v-skeleton-loader></td>
+                            <td><v-skeleton-loader type="chip" width="80" height="24"></v-skeleton-loader></td>
                             <td>
-                                <span class="font-weight-medium">{{ product.name }}</span>
+                                <div class="d-flex">
+                                    <v-skeleton-loader type="button" width="32" height="32"
+                                        class="mr-1"></v-skeleton-loader>
+                                    <v-skeleton-loader type="button" width="32" height="32"></v-skeleton-loader>
+                                </div>
                             </td>
-                            <td>{{ product.sku || '-' }}</td>
-                            <td>{{ product.category?.name || '-' }}</td>
-                            <td class="text-end">৳{{ parseFloat(product.purchase_price || 0).toFixed(2) }}</td>
-                            <td class="text-end">৳{{ parseFloat(product.sale_price || 0).toFixed(2) }}</td>
-                            <td class="text-end">
-                                <v-chip size="small" :color="getStockStatusColor(product)" variant="tonal">
-                                    {{ product.stock_quantity || 0 }}
-                                </v-chip>
-                                <v-tooltip v-if="product.stock_by_warehouse && product.stock_by_warehouse.length > 0"
-                                    activator="parent" location="top">
-                                    <div class="text-caption">
-                                        <div v-for="stock in product.stock_by_warehouse" :key="stock.warehouse_id"
-                                            class="py-1">
-                                            <strong>{{ stock.warehouse_name }}:</strong> {{ stock.quantity || 0 }}
+                        </tr>
+                        <!-- Actual Product Data -->
+                        <template v-else>
+                            <tr v-for="product in products" :key="product.id">
+                                <td>
+                                    <span class="font-weight-medium">{{ product.name }}</span>
+                                </td>
+                                <td>{{ product.sku || '-' }}</td>
+                                <td>{{ product.category?.name || '-' }}</td>
+                                <td class="text-end">৳{{ parseFloat(product.purchase_price || 0).toFixed(2) }}</td>
+                                <td class="text-end">৳{{ parseFloat(product.sale_price || 0).toFixed(2) }}</td>
+                                <td class="text-end">
+                                    <v-chip size="small" :color="getStockStatusColor(product)" variant="tonal">
+                                        {{ product.stock_quantity || 0 }}
+                                    </v-chip>
+                                    <v-tooltip
+                                        v-if="product.stock_by_warehouse && product.stock_by_warehouse.length > 0"
+                                        activator="parent" location="top">
+                                        <div class="text-caption">
+                                            <div v-for="stock in product.stock_by_warehouse" :key="stock.warehouse_id"
+                                                class="py-1">
+                                                <strong>{{ stock.warehouse_name }}:</strong> {{ stock.quantity || 0 }}
+                                            </div>
                                         </div>
-                                    </div>
-                                </v-tooltip>
-                            </td>
-                            <td class="text-end">{{ product.minimum_stock_level || 0 }}</td>
-                            <td>
-                                <v-chip size="small" :color="product.is_active ? 'success' : 'error'" variant="tonal">
-                                    {{ product.is_active ? 'Active' : 'Inactive' }}
-                                </v-chip>
-                            </td>
-                            <td>
-                                <v-btn icon="mdi-pencil" variant="text" size="small" @click="openDialog(product)" />
-                                <v-btn icon="mdi-delete" variant="text" size="small" color="error"
-                                    @click="deleteProduct(product)" />
-                            </td>
-                        </tr>
-                        <tr v-if="products.length === 0">
-                            <td colspan="9" class="text-center py-4">No products found</td>
-                        </tr>
+                                    </v-tooltip>
+                                </td>
+                                <td class="text-end">{{ product.minimum_stock_level || 0 }}</td>
+                                <td>
+                                    <v-chip size="small" :color="product.is_active ? 'success' : 'error'"
+                                        variant="tonal">
+                                        {{ product.is_active ? 'Active' : 'Inactive' }}
+                                    </v-chip>
+                                </td>
+                                <td>
+                                    <v-btn icon="mdi-pencil" variant="text" size="small" @click="openDialog(product)" />
+                                    <v-btn icon="mdi-delete" variant="text" size="small" color="error"
+                                        @click="deleteProduct(product)" />
+                                </td>
+                            </tr>
+                            <tr v-if="products.length === 0">
+                                <td colspan="9" class="text-center py-4">No products found</td>
+                            </tr>
+                        </template>
                     </tbody>
                 </v-table>
 
-                <!-- Pagination and Records Info -->
+                <!-- Pagination -->
                 <div
                     class="d-flex flex-column flex-md-row justify-space-between align-center align-md-start gap-3 mt-4">
+                    <!-- Left: Records Info -->
                     <div class="text-caption text-grey">
                         <span v-if="products.length > 0 && pagination.total > 0">
-                            Showing <strong>{{ ((pagination.current_page - 1) * pagination.per_page) + 1 }}</strong> to
-                            <strong>{{ Math.min(pagination.current_page * pagination.per_page, pagination.total)
-                            }}</strong> of
-                            <strong>{{ pagination.total.toLocaleString() }}</strong> records
-                            <span v-if="pagination.last_page > 1" class="ml-2">
-                                (Page {{ pagination.current_page }} of {{ pagination.last_page }})
+                            <span v-if="perPage === 'all'">
+                                Showing <strong>all {{ pagination.total.toLocaleString() }}</strong> records
+                            </span>
+                            <span v-else>
+                                Showing <strong>{{ ((currentPage - 1) * perPage) + 1 }}</strong> to
+                                <strong>{{ Math.min(currentPage * perPage, pagination.total) }}</strong> of
+                                <strong>{{ pagination.total.toLocaleString() }}</strong> records
                             </span>
                         </span>
-                        <span v-else>
-                            No records found
-                        </span>
+                        <span v-else>No records found</span>
                     </div>
-                    <div v-if="pagination.last_page > 1" class="d-flex align-center gap-2">
-                        <v-pagination v-model="pagination.current_page" :length="pagination.last_page"
-                            :total-visible="7" density="comfortable" @update:model-value="loadProducts">
-                        </v-pagination>
-                    </div>
+
+                    <!-- Right: Items Per Page and Pagination -->
+                    <PaginationControls v-model="currentPage" :pagination="pagination" :per-page-value="perPage"
+                        :per-page-options="perPageOptions" @update:per-page="onPerPageUpdate"
+                        @page-change="onPageChange" />
                 </div>
             </v-card-text>
         </v-card>
@@ -203,88 +207,81 @@
 </template>
 
 <script>
-import axios from '@/utils/axios.config';
+import adminPaginationMixin from '../../../mixins/adminPaginationMixin';
 import ProductDialog from './dialogs/ProductDialog.vue';
-import { sortingMixin } from '@/composables/useSorting';
+import PaginationControls from '../../common/PaginationControls.vue';
 
 export default {
     name: 'AdminProducts',
-    components: { ProductDialog },
-    mixins: [sortingMixin],
+    components: {
+        ProductDialog,
+        PaginationControls
+    },
+    mixins: [adminPaginationMixin],
     data() {
         return {
             products: [],
-            loading: false,
-            search: '',
             categoryOptions: [],
             categoryFilter: null,
             activeOptions: [
                 { title: 'Active', value: true },
-                { title: 'Inactive', value: false },
+                { title: 'Inactive', value: false }
             ],
             activeFilter: null,
             dialog: false,
             editingProduct: null,
-            pagination: {
-                current_page: 1,
-                per_page: 15,
-                last_page: 1,
-                total: 0,
-            },
-            perPageOptions: [
-                { title: '10', value: 10 },
-                { title: '15', value: 15 },
-                { title: '25', value: 25 },
-                { title: '50', value: 50 },
-                { title: '100', value: 100 },
-            ],
         };
     },
-    mounted() {
-        this.loadOptions();
-        this.loadProducts();
+    async mounted() {
+        await this.loadOptions();
+        await this.loadProducts();
     },
     methods: {
         async loadOptions() {
             try {
-                const { data } = await axios.get('/api/v1/products/categories');
-                this.categoryOptions = data.categories || [];
+                const response = await this.$axios.get('/api/v1/products/categories', {
+                    headers: this.getAuthHeaders()
+                });
+                this.categoryOptions = response.data.categories || [];
             } catch (error) {
                 console.error('Failed to load categories', error);
             }
         },
         async loadProducts() {
-            this.loading = true;
             try {
-                const params = {
-                    page: this.pagination.current_page,
-                    per_page: this.pagination.per_page,
-                    ...this.getSortParams(), // Use centralized sort params
-                };
-                if (this.search) params.search = this.search;
-                if (this.categoryFilter) params.category_id = this.categoryFilter;
-                if (this.activeFilter !== null) params.is_active = this.activeFilter;
+                this.loading = true;
+                const params = this.buildPaginationParams();
 
-                const { data } = await axios.get('/api/v1/products', { params });
-                this.products = data.data || [];
-                this.pagination = {
-                    current_page: data.current_page || 1,
-                    per_page: data.per_page || 15,
-                    last_page: data.last_page || 1,
-                    total: data.total || 0,
-                };
+                // Handle "Show All" option
+                if (this.perPage === 'all') {
+                    params.per_page = 999999; // Very large number to get all records
+                }
+
+                if (this.search) {
+                    params.search = this.search;
+                }
+                if (this.categoryFilter) {
+                    params.category_id = this.categoryFilter;
+                }
+                if (this.activeFilter !== null) {
+                    params.is_active = this.activeFilter;
+                }
+
+                const response = await this.$axios.get('/api/v1/products', {
+                    params,
+                    headers: this.getAuthHeaders()
+                });
+
+                this.products = response.data.data || [];
+                this.updatePagination(response.data);
             } catch (error) {
-                console.error('Failed to load products', error);
-                this.showError('Failed to load products');
+                this.handleApiError(error, 'Failed to load products');
             } finally {
                 this.loading = false;
             }
         },
-        // sortBy method is provided by sortingMixin
-        // Override onSortChange to handle pagination reset
-        onSortChange() {
-            // Reset to first page when sorting changes
-            this.pagination.current_page = 1;
+        onSort(field) {
+            this.handleSort(field);
             this.loadProducts();
         },
         openDialog(product) {
@@ -292,80 +289,28 @@ export default {
             this.dialog = true;
         },
         async deleteProduct(product) {
-            const result = await window.Swal.fire({
-                title: 'Are you sure?',
-                text: `Do you want to delete product ${product.name}?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Yes, delete it!',
-                cancelButtonText: 'Cancel'
-            });
+            if (!confirm(`Are you sure you want to delete ${product.name}?`)) {
+                return;
+            }
 
-            if (result.isConfirmed) {
-                try {
-                    await axios.delete(`/api/v1/products/${product.id}`);
-                    this.showSuccess('Product deleted successfully');
-                    this.loadProducts();
-                } catch (error) {
-                    console.error('Failed to delete product', error);
-                    this.showError(error.response?.data?.message || 'Failed to delete product');
-                }
+            try {
+                await this.$axios.delete(`/api/v1/products/${product.id}`, {
+                    headers: this.getAuthHeaders()
+                });
+
+                this.showSuccess('Product deleted successfully');
+                await this.loadProducts();
+            } catch (error) {
+                this.handleApiError(error, 'Error deleting product');
             }
         },
-        onPerPageChange() {
-            this.pagination.current_page = 1;
+        onPerPageUpdate(value) {
+            this.perPage = value;
+            this.onPerPageChange();
+        },
+        onPageChange(page) {
+            this.currentPage = page;
             this.loadProducts();
-        },
-        resetFilters() {
-            this.search = '';
-            this.categoryFilter = null;
-            this.activeFilter = null;
-            this.pagination.current_page = 1;
-            this.loadProducts();
-        },
-        onSearchChange() {
-            // Reset to first page when search changes
-            this.pagination.current_page = 1;
-            this.loadProducts();
-        },
-        onFilterChange() {
-            // Reset to first page when filters change
-            this.pagination.current_page = 1;
-            this.loadProducts();
-        },
-        showSuccess(message) {
-            if (window.Toast) {
-                window.Toast.fire({
-                    icon: 'success',
-                    title: message
-                });
-            } else if (window.Swal) {
-                window.Swal.fire({
-                    icon: 'success',
-                    title: message,
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-            } else {
-                alert(message);
-            }
-        },
-        showError(message) {
-            if (window.Toast) {
-                window.Toast.fire({
-                    icon: 'error',
-                    title: message
-                });
-            } else if (window.Swal) {
-                window.Swal.fire({
-                    icon: 'error',
-                    title: message
-                });
-            } else {
-                alert(message);
-            }
         },
         getStockStatusColor(product) {
             const stockQty = product.stock_quantity || 0;
@@ -373,6 +318,10 @@ export default {
             if (stockQty <= 0) return 'error';
             if (minStock > 0 && stockQty <= minStock) return 'warning';
             return 'success';
+        },
+        onPerPageChange() {
+            this.resetPagination();
+            this.loadProducts();
         },
     },
 };
@@ -428,7 +377,7 @@ export default {
 
 .sort-icon {
     flex-shrink: 0;
-    transition: opacity 0.2s, color 0.2s;
+    transition: opacity 0.2s, color 0.2s, background-color 0.2s;
     display: inline-flex !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -436,15 +385,18 @@ export default {
     width: 18px !important;
     height: 18px !important;
     line-height: 1 !important;
+    background-color: white;
+    border-radius: 4px;
+    padding: 2px;
 }
 
 .sort-icon.active {
     opacity: 1 !important;
     color: rgb(var(--v-theme-primary)) !important;
     visibility: visible !important;
+    background-color: white !important;
 }
 
-/* Ensure active icon is visible on any background */
 .sort-icon.active :deep(svg),
 .sort-icon.active :deep(path) {
     fill: currentColor !important;
@@ -456,9 +408,9 @@ export default {
     opacity: 0.7 !important;
     color: #424242 !important;
     visibility: visible !important;
+    background-color: white !important;
 }
 
-/* Ensure inactive icon is visible on table header background */
 .sort-icon.inactive :deep(svg),
 .sort-icon.inactive :deep(path) {
     fill: #424242 !important;
@@ -469,6 +421,7 @@ export default {
 .sortable:hover .sort-icon.inactive {
     opacity: 1 !important;
     color: #212121 !important;
+    background-color: white !important;
 }
 
 .sortable:hover .sort-icon.inactive :deep(svg),
