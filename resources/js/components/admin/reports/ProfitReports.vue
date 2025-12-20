@@ -5,10 +5,12 @@
             <v-card-text>
                 <v-row dense>
                     <v-col cols="12" md="3">
-                        <v-text-field v-model="filters.date_from" type="date" label="From Date" />
+                        <DatePicker v-model="filters.date_from" label="From Date" density="compact"
+                            @update:model-value="onDateFromChange" />
                     </v-col>
                     <v-col cols="12" md="3">
-                        <v-text-field v-model="filters.date_to" type="date" label="To Date" />
+                        <DatePicker v-model="filters.date_to" label="To Date" density="compact"
+                            @update:model-value="onDateToChange" />
                     </v-col>
                     <v-col cols="12" md="3">
                         <v-select v-model="filters.category_id" :items="categories" 
@@ -107,9 +109,13 @@
 
 <script>
 import axios from '@/utils/axios.config';
+import DatePicker from '../../common/DatePicker.vue';
 
 export default {
     name: 'ProfitReports',
+    components: {
+        DatePicker
+    },
     data() {
         return {
             loading: false,
@@ -204,6 +210,17 @@ export default {
                 console.error('Failed to export PDF', error);
                 this.$toast?.error('Failed to export report');
             }
+        },
+        // Date change handlers - explicitly set the filter value and fetch
+        onDateFromChange(value) {
+            // Set the filter value explicitly (handles both v-model update and direct value)
+            this.filters.date_from = value || '';
+            this.generateReport();
+        },
+        onDateToChange(value) {
+            // Set the filter value explicitly (handles both v-model update and direct value)
+            this.filters.date_to = value || '';
+            this.generateReport();
         },
     },
 };

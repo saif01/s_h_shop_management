@@ -5,18 +5,19 @@
             <v-card-text>
                 <v-row dense>
                     <v-col cols="12" md="3">
-                        <v-text-field v-model="filters.date_from" type="date" label="From Date" />
+                        <DatePicker v-model="filters.date_from" label="From Date" density="compact"
+                            @update:model-value="onDateFromChange" />
                     </v-col>
                     <v-col cols="12" md="3">
-                        <v-text-field v-model="filters.date_to" type="date" label="To Date" />
+                        <DatePicker v-model="filters.date_to" label="To Date" density="compact"
+                            @update:model-value="onDateToChange" />
                     </v-col>
                     <v-col cols="12" md="3">
-                        <v-select v-model="filters.customer_id" :items="customers" 
-                            item-value="id" item-title="name" label="Customer" clearable />
+                        <v-select v-model="filters.customer_id" :items="customers" item-value="id" item-title="name"
+                            label="Customer" clearable />
                     </v-col>
                     <v-col cols="12" md="3">
-                        <v-select v-model="filters.status" :items="statusOptions" 
-                            label="Status" clearable />
+                        <v-select v-model="filters.status" :items="statusOptions" label="Status" clearable />
                     </v-col>
                     <v-col cols="12" class="d-flex gap-2">
                         <v-btn color="primary" @click="generateReport" :loading="loading">
@@ -71,8 +72,7 @@
 
         <!-- Report Table -->
         <v-card variant="outlined">
-            <v-data-table :headers="headers" :items="reportData" :loading="loading" 
-                :items-per-page="25">
+            <v-data-table :headers="headers" :items="reportData" :loading="loading" :items-per-page="25">
                 <template #item.invoice_date="{ item }">
                     {{ formatDate(item.invoice_date) }}
                 </template>
@@ -122,9 +122,13 @@
 
 <script>
 import axios from '@/utils/axios.config';
+import DatePicker from '../../common/DatePicker.vue';
 
 export default {
     name: 'SalesReports',
+    components: {
+        DatePicker
+    },
     data() {
         return {
             loading: false,
@@ -235,7 +239,17 @@ export default {
             };
             return colors[status] || 'grey';
         },
+        // Date change handlers - explicitly set the filter value and fetch
+        onDateFromChange(value) {
+            // Set the filter value explicitly (handles both v-model update and direct value)
+            this.filters.date_from = value || '';
+            this.generateReport();
+        },
+        onDateToChange(value) {
+            // Set the filter value explicitly (handles both v-model update and direct value)
+            this.filters.date_to = value || '';
+            this.generateReport();
+        },
     },
 };
 </script>
-
