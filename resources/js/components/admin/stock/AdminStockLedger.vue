@@ -46,13 +46,19 @@
         <v-card>
             <v-card-title class="d-flex justify-space-between align-center">
                 <span>Stock Movements</span>
-                <span class="text-caption text-grey">
-                    Total Records: <strong>{{ pagination.total || 0 }}</strong>
-                    <span v-if="ledgers.length > 0">
-                        | Showing {{ ((currentPage - 1) * perPage) + 1 }} to {{ Math.min(currentPage * perPage,
-                            pagination.total) }} of {{ pagination.total }}
+                <div class="d-flex align-center gap-2">
+                    <v-btn color="success" size="small" prepend-icon="mdi-file-excel" @click="exportToExcel"
+                        :disabled="loading || ledgers.length === 0" :loading="exporting">
+                        Export Excel
+                    </v-btn>
+                    <span class="text-caption text-grey">
+                        Total Records: <strong>{{ pagination.total || 0 }}</strong>
+                        <span v-if="ledgers.length > 0">
+                            | Showing {{ ((currentPage - 1) * perPage) + 1 }} to {{ Math.min(currentPage * perPage,
+                                pagination.total) }} of {{ pagination.total }}
+                        </span>
                     </span>
-                </span>
+                </div>
             </v-card-title>
             <v-card-text>
                 <v-table>
@@ -221,6 +227,7 @@ export default {
             ],
             dateFrom: '',
             dateTo: '',
+            exporting: false,
             // Pagination state - using centralized defaults
             currentPage: defaultPaginationState.currentPage,
             perPage: defaultPaginationState.perPage,
@@ -370,6 +377,120 @@ export default {
             this.dateTo = value || '';
             this.resetPagination(); // Reset to first page when filter changes
             this.loadLedger();
+        },
+        async exportToExcel() {
+            try {
+                this.exporting = true;
+
+                // Build params with all filters but get all records
+                const params = {};
+
+                if (this.search) {
+                    params.search = this.search;
+                }
+                if (this.productFilter) {
+                    params.product_id = this.productFilter;
+                }
+                if (this.warehouseFilter) {
+                    params.warehouse_id = this.warehouseFilter;
+                }
+                if (this.typeFilter) {
+                    params.type = this.typeFilter;
+                }
+                if (this.referenceTypeFilter) {
+                    params.reference_type = this.referenceTypeFilter;
+                }
+                if (this.dateFrom && String(this.dateFrom).trim() !== '') {
+                    params.date_from = this.dateFrom;
+                }
+                if (this.dateTo && String(this.dateTo).trim() !== '') {
+                    params.date_to = this.dateTo;
+                }
+
+                // Get all records for export (no pagination)
+                params.per_page = 999999;
+
+                const response = await this.$axios.get('/api/v1/stock-ledger', {
+                    params,
+                    headers: this.getAuthHeaders()
+                });
+
+                const allLedgers = response.data.data || [];
+
+                if (allLedgers.length === 0) {
+                    this.showError('No data to export');
+                    return;
+                }
+
+                // Prepare CSV data
+                const headers = [
+                    'Date',
+                    'Product Name',
+                    'Product SKU',
+                    'Warehouse',
+                    'Type',
+                    'Reference Type',
+                    'Reference Number',
+                    'Quantity',
+                    'Unit Cost',
+                    'Total Cost',
+                    'Balance After',
+                    'Created By',
+                    'Created At'
+                ];
+
+                const rows = allLedgers.map(ledger => [
+                    this.formatDateDDMMYYYY(ledger.transaction_date) || '',
+                    ledger.product?.name || '',
+                    ledger.product?.sku || '',
+                    ledger.warehouse?.name || '',
+                    ledger.type === 'in' ? 'IN' : 'OUT',
+                    this.formatReferenceType(ledger.reference_type) || '',
+                    ledger.reference_number || '',
+                    ledger.quantity || 0,
+                    parseFloat(ledger.unit_cost || 0).toFixed(2),
+                    parseFloat(ledger.total_cost || 0).toFixed(2),
+                    ledger.balance_after || 0,
+                    ledger.creator?.name || '',
+                    this.formatDateShort(ledger.created_at) || ''
+                ]);
+
+                // Convert to CSV
+                const csvContent = [
+                    headers.join(','),
+                    ...rows.map(row => row.map(cell => {
+                        // Escape commas and quotes in cell values
+                        const cellStr = String(cell || '');
+                        if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+                            return `"${cellStr.replace(/"/g, '""')}"`;
+                        }
+                        return cellStr;
+                    }).join(','))
+                ].join('\n');
+
+                // Add BOM for Excel UTF-8 support
+                const BOM = '\uFEFF';
+                const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+
+                // Generate filename with current date
+                const now = new Date();
+                const dateStr = now.toISOString().split('T')[0];
+                link.setAttribute('download', `stock_ledger_${dateStr}.csv`);
+
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                window.URL.revokeObjectURL(url);
+
+                this.showSuccess('Stock ledger exported successfully');
+            } catch (error) {
+                this.handleApiError(error, 'Failed to export stock ledger');
+            } finally {
+                this.exporting = false;
+            }
         },
     }
 };
