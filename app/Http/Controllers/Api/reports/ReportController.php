@@ -41,15 +41,57 @@ class ReportController extends Controller
             $query->where('sales.status', $request->status);
         }
 
-        $sales = $query->orderBy('sales.invoice_date', 'desc')->get();
-
-        // Calculate summary
-        $summary = [
-            'total_sales' => $sales->sum('total_amount'),
-            'total_paid' => $sales->sum('paid_amount'),
-            'total_due' => $sales->sum('balance_amount'),
-            'total_count' => $sales->count(),
+        // Sorting
+        $sortBy = $request->get('sort_by', 'invoice_date');
+        $sortDirection = $request->get('sort_direction', 'desc');
+        
+        $allowedSortFields = [
+            'id', 'invoice_number', 'invoice_date', 'customer_name', 
+            'total_amount', 'paid_amount', 'balance_amount', 'status', 'created_at'
         ];
+        
+        // Map frontend sort fields to database fields
+        $sortFieldMap = [
+            'invoice_number' => 'sales.invoice_number',
+            'invoice_date' => 'sales.invoice_date',
+            'customer_name' => 'customers.name',
+            'total_amount' => 'sales.total_amount',
+            'paid_amount' => 'sales.paid_amount',
+            'balance_amount' => 'sales.balance_amount',
+            'status' => 'sales.status',
+        ];
+        
+        $dbSortField = $sortFieldMap[$sortBy] ?? 'sales.invoice_date';
+        
+        if (!in_array($sortDirection, ['asc', 'desc'])) {
+            $sortDirection = 'desc';
+        }
+        
+        $query->orderBy($dbSortField, $sortDirection);
+
+        // Get all sales for summary calculation (before pagination)
+        $allSales = clone $query;
+        $allSalesForSummary = $allSales->get();
+
+        // For financial calculations: exclude cancelled sales unless explicitly filtered by cancelled status
+        $salesForFinancials = $allSalesForSummary;
+        if (!$request->status || $request->status !== 'cancelled') {
+            // If no status filter or not filtering by cancelled, exclude cancelled from financials
+            $salesForFinancials = $allSalesForSummary->where('status', '!=', 'cancelled');
+        }
+        
+        // Calculate summary from all filtered sales
+        // Financial totals exclude cancelled sales (unless explicitly viewing cancelled), count includes all
+        $summary = [
+            'total_sales' => (float) ($salesForFinancials->sum('total_amount') ?? 0),
+            'total_paid' => (float) ($salesForFinancials->sum('paid_amount') ?? 0),
+            'total_due' => (float) ($salesForFinancials->sum('balance_amount') ?? 0),
+            'total_count' => (int) $allSalesForSummary->count(), // Include all statuses in count
+        ];
+
+        // Paginate the sales
+        $perPage = $request->get('per_page', 10);
+        $sales = $query->paginate($perPage);
 
         // Top selling products
         $topProducts = SalesItem::select(
@@ -61,11 +103,21 @@ class ReportController extends Controller
             ->join('products', 'sales_items.product_id', '=', 'products.id')
             ->join('sales', 'sales_items.sale_id', '=', 'sales.id');
         
+        // Apply same filters as main query
         if ($request->date_from) {
             $topProducts->whereDate('sales.invoice_date', '>=', $request->date_from);
         }
         if ($request->date_to) {
             $topProducts->whereDate('sales.invoice_date', '<=', $request->date_to);
+        }
+        if ($request->customer_id) {
+            $topProducts->where('sales.customer_id', $request->customer_id);
+        }
+        if ($request->status) {
+            $topProducts->where('sales.status', $request->status);
+        } else {
+            // If no status filter, exclude cancelled sales from top products
+            $topProducts->where('sales.status', '!=', 'cancelled');
         }
         
         $topProducts = $topProducts->groupBy('product_id', 'products.name')
@@ -73,11 +125,13 @@ class ReportController extends Controller
             ->limit(10)
             ->get();
 
-        return response()->json([
-            'sales' => $sales,
-            'summary' => $summary,
-            'top_products' => $topProducts,
-        ]);
+        // Return paginated response with additional data
+        $response = $sales->toArray();
+        $response['summary'] = $summary;
+        $response['top_products'] = $topProducts;
+        $response['sales'] = $response['data']; // Keep 'sales' key for backward compatibility
+        
+        return response()->json($response);
     }
 
     /**

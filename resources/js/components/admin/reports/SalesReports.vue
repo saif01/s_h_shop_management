@@ -181,7 +181,7 @@
                         <template v-else>
                             <tr v-for="item in reportData" :key="item.id || item.invoice_number">
                                 <td>{{ item.invoice_number }}</td>
-                                <td>{{ formatDate(item.invoice_date) }}</td>
+                                <td>{{ formatDateDDMMYYYY(item.invoice_date) }}</td>
                                 <td>{{ item.customer_name }}</td>
                                 <td class="text-end">{{ formatCurrency(item.total_amount) }}</td>
                                 <td class="text-end">{{ formatCurrency(item.paid_amount) }}</td>
@@ -339,7 +339,8 @@ export default {
                     params,
                     headers: this.getAuthHeaders()
                 });
-                this.reportData = response.data.sales || [];
+                // Handle both paginated response (data) and legacy format (sales)
+                this.reportData = response.data.data || response.data.sales || [];
                 this.topProducts = response.data.top_products || [];
                 this.summary = response.data.summary || null;
                 this.updatePagination(response.data);
@@ -396,10 +397,6 @@ export default {
             } finally {
                 this.exporting = false;
             }
-        },
-        formatDate(date) {
-            if (!date) return '';
-            return new Date(date).toLocaleDateString();
         },
         formatCurrency(value) {
             if (value === null || value === undefined) return '৳0.00';
