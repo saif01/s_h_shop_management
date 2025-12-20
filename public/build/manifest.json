@@ -1,6 +1,6 @@
 {
-  "_UserProfileDialog-BoOmaPdR.js": {
-    "file": "assets/UserProfileDialog-BoOmaPdR.js",
+  "_UserProfileDialog-Bw6qRA_L.js": {
+    "file": "assets/UserProfileDialog-Bw6qRA_L.js",
     "name": "UserProfileDialog",
     "imports": [
       "_moment-C5S46NFB.js",
@@ -80,7 +80,7 @@
     "src": "node_modules/@mdi/font/fonts/materialdesignicons-webfont.woff2"
   },
   "resources/js/app.js": {
-    "file": "assets/app-B76V_J0T.js",
+    "file": "assets/app-VZD65mVg.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -110,7 +110,7 @@
     ]
   },
   "resources/js/components/admin/AdminDashboard.vue": {
-    "file": "assets/AdminDashboard-BZhUpWLP.js",
+    "file": "assets/AdminDashboard-Djgge4B_.js",
     "name": "AdminDashboard",
     "src": "resources/js/components/admin/AdminDashboard.vue",
     "isDynamicEntry": true,
@@ -122,7 +122,7 @@
     ]
   },
   "resources/js/components/admin/AdminLayout.vue": {
-    "file": "assets/AdminLayout-CWLUZ7Bi.js",
+    "file": "assets/AdminLayout-Ci6CzX5H.js",
     "name": "AdminLayout",
     "src": "resources/js/components/admin/AdminLayout.vue",
     "isDynamicEntry": true,
@@ -130,14 +130,14 @@
       "_moment-C5S46NFB.js",
       "resources/js/app.js",
       "_uploads-CnEkgyD_.js",
-      "_UserProfileDialog-BoOmaPdR.js"
+      "_UserProfileDialog-Bw6qRA_L.js"
     ],
     "css": [
       "assets/AdminLayout-D0xHQDhP.css"
     ]
   },
   "resources/js/components/admin/auth/AdminLogin.vue": {
-    "file": "assets/AdminLogin-B1E62smT.js",
+    "file": "assets/AdminLogin-BWCil7u_.js",
     "name": "AdminLogin",
     "src": "resources/js/components/admin/auth/AdminLogin.vue",
     "isDynamicEntry": true,
@@ -150,7 +150,7 @@
     ]
   },
   "resources/js/components/admin/logs/AdminLoginLogs.vue": {
-    "file": "assets/AdminLoginLogs-C5Xzw4D_.js",
+    "file": "assets/AdminLoginLogs-HkCY2xYo.js",
     "name": "AdminLoginLogs",
     "src": "resources/js/components/admin/logs/AdminLoginLogs.vue",
     "isDynamicEntry": true,
@@ -164,7 +164,7 @@
     ]
   },
   "resources/js/components/admin/master/AdminCustomers.vue": {
-    "file": "assets/AdminCustomers-DAiRQ6vV.js",
+    "file": "assets/AdminCustomers-S4GK8GMv.js",
     "name": "AdminCustomers",
     "src": "resources/js/components/admin/master/AdminCustomers.vue",
     "isDynamicEntry": true,
@@ -178,7 +178,7 @@
     ]
   },
   "resources/js/components/admin/master/AdminSuppliers.vue": {
-    "file": "assets/AdminSuppliers-DuI5qvZv.js",
+    "file": "assets/AdminSuppliers-DxFcCoOb.js",
     "name": "AdminSuppliers",
     "src": "resources/js/components/admin/master/AdminSuppliers.vue",
     "isDynamicEntry": true,
@@ -192,7 +192,7 @@
     ]
   },
   "resources/js/components/admin/products/AdminCategories.vue": {
-    "file": "assets/AdminCategories-CBamhp6Q.js",
+    "file": "assets/AdminCategories-CkV6UzCh.js",
     "name": "AdminCategories",
     "src": "resources/js/components/admin/products/AdminCategories.vue",
     "isDynamicEntry": true,
@@ -206,7 +206,7 @@
     ]
   },
   "resources/js/components/admin/products/AdminProducts.vue": {
-    "file": "assets/AdminProducts-JWbnpiZ7.js",
+    "file": "assets/AdminProducts-c0CepFvY.js",
     "name": "AdminProducts",
     "src": "resources/js/components/admin/products/AdminProducts.vue",
     "isDynamicEntry": true,
@@ -218,7 +218,7 @@
     ]
   },
   "resources/js/components/admin/products/AdminUnits.vue": {
-    "file": "assets/AdminUnits-DT-IZtjN.js",
+    "file": "assets/AdminUnits-DhZ1h910.js",
     "name": "AdminUnits",
     "src": "resources/js/components/admin/products/AdminUnits.vue",
     "isDynamicEntry": true,
@@ -227,7 +227,7 @@
     ]
   },
   "resources/js/components/admin/purchase/AdminPurchases.vue": {
-    "file": "assets/AdminPurchases-msjcyniq.js",
+    "file": "assets/AdminPurchases-CMoVGTiX.js",
     "name": "AdminPurchases",
     "src": "resources/js/components/admin/purchase/AdminPurchases.vue",
     "isDynamicEntry": true,
@@ -240,7 +240,7 @@
     ]
   },
   "resources/js/components/admin/reports/AdminReports.vue": {
-    "file": "assets/AdminReports-B03vZ9WU.js",
+    "file": "assets/AdminReports-Dpg-503w.js",
     "name": "AdminReports",
     "src": "resources/js/components/admin/reports/AdminReports.vue",
     "isDynamicEntry": true,
@@ -249,7 +249,7 @@
     ]
   },
   "resources/js/components/admin/sales/AdminSales.vue": {
-    "file": "assets/AdminSales-Ci96ZkZg.js",
+    "file": "assets/AdminSales-IKty2g1f.js",
     "name": "AdminSales",
     "src": "resources/js/components/admin/sales/AdminSales.vue",
     "isDynamicEntry": true,
@@ -258,11 +258,11 @@
       "_adminPaginationMixin-BpksgI63.js"
     ],
     "css": [
-      "assets/AdminSales-BoDM5Pfl.css"
+      "assets/AdminSales-1hLt-TzN.css"
     ]
   },
   "resources/js/components/admin/settings/AdminSettings.vue": {
-    "file": "assets/AdminSettings-B9oW1b00.js",
+    "file": "assets/AdminSettings-CGL-NTiW.js",
     "name": "AdminSettings",
     "src": "resources/js/components/admin/settings/AdminSettings.vue",
     "isDynamicEntry": true,
@@ -275,7 +275,7 @@
     ]
   },
   "resources/js/components/admin/stock/AdminStockLedger.vue": {
-    "file": "assets/AdminStockLedger-DikXCbbU.js",
+    "file": "assets/AdminStockLedger-e0_RkHD7.js",
     "name": "AdminStockLedger",
     "src": "resources/js/components/admin/stock/AdminStockLedger.vue",
     "isDynamicEntry": true,
@@ -288,7 +288,7 @@
     ]
   },
   "resources/js/components/admin/stock/AdminWarehouses.vue": {
-    "file": "assets/AdminWarehouses-BQ32GQdb.js",
+    "file": "assets/AdminWarehouses--kH_woC4.js",
     "name": "AdminWarehouses",
     "src": "resources/js/components/admin/stock/AdminWarehouses.vue",
     "isDynamicEntry": true,
@@ -297,7 +297,7 @@
     ]
   },
   "resources/js/components/admin/users/AdminPermissions.vue": {
-    "file": "assets/AdminPermissions-CtLiaipC.js",
+    "file": "assets/AdminPermissions-BPLBEuvk.js",
     "name": "AdminPermissions",
     "src": "resources/js/components/admin/users/AdminPermissions.vue",
     "isDynamicEntry": true,
@@ -307,7 +307,7 @@
     ]
   },
   "resources/js/components/admin/users/AdminRoles.vue": {
-    "file": "assets/AdminRoles-3Z4xESWJ.js",
+    "file": "assets/AdminRoles-BTeCurh6.js",
     "name": "AdminRoles",
     "src": "resources/js/components/admin/users/AdminRoles.vue",
     "isDynamicEntry": true,
@@ -320,14 +320,14 @@
     ]
   },
   "resources/js/components/admin/users/AdminUsers.vue": {
-    "file": "assets/AdminUsers-heRzEZPk.js",
+    "file": "assets/AdminUsers-CoOS8kmU.js",
     "name": "AdminUsers",
     "src": "resources/js/components/admin/users/AdminUsers.vue",
     "isDynamicEntry": true,
     "imports": [
       "_adminPaginationMixin-BpksgI63.js",
       "_uploads-CnEkgyD_.js",
-      "_UserProfileDialog-BoOmaPdR.js",
+      "_UserProfileDialog-Bw6qRA_L.js",
       "resources/js/app.js",
       "_moment-C5S46NFB.js"
     ],
