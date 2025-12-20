@@ -211,6 +211,7 @@
 <script>
 import axios from '@/utils/axios.config';
 import commonMixin from '../../../mixins/commonMixin';
+import { defaultPaginationState, paginationUtils } from '../../../utils/pagination.js';
 import PaginationControls from '../../common/PaginationControls.vue';
 
 export default {
@@ -229,6 +230,11 @@ export default {
             rules: {
                 required: value => !!value || 'This field is required',
             },
+            // Pagination state - using centralized defaults
+            currentPage: defaultPaginationState.currentPage,
+            perPage: defaultPaginationState.perPage,
+            perPageOptions: defaultPaginationState.perPageOptions,
+            pagination: { ...defaultPaginationState.pagination },
         };
     },
     mounted() {
@@ -369,6 +375,21 @@ export default {
                 this.handleApiError(error, 'Error deleting unit');
             }
         },
+        buildPaginationParams(additionalParams = {}) {
+            return paginationUtils.buildPaginationParams(
+                this.currentPage,
+                this.perPage,
+                additionalParams,
+                this.sortBy,
+                this.sortDirection
+            );
+        },
+        updatePagination(responseData) {
+            paginationUtils.updatePagination(this, responseData);
+        },
+        resetPagination() {
+            paginationUtils.resetPagination(this);
+        },
         onPerPageChange() {
             this.resetPagination();
             this.loadUnits();
@@ -383,6 +404,7 @@ export default {
         },
         onSort(field) {
             this.handleSort(field);
+            this.currentPage = 1; // Reset to first page when sorting changes
             this.loadUnits();
         },
     },

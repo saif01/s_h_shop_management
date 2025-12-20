@@ -14,12 +14,12 @@
                     <v-icon size="small" class="mr-1">mdi-view-list</v-icon>
                     Items per page
                 </v-list-subheader>
-                <template v-for="(option, index) in perPageOptions" :key="option.value">
+                <template v-for="(option, index) in computedPerPageOptions" :key="option.value">
                     <v-divider v-if="option.value === 'all'" class="my-2"></v-divider>
-                    <v-list-item :value="option.value" :active="perPage === option.value"
+                    <v-list-item :value="option.value" :active="computedPerPage === option.value"
                         @click="selectPerPage(option.value)" class="items-per-page-item">
                         <template v-slot:prepend>
-                            <v-icon v-if="perPage === option.value" color="primary" size="small">
+                            <v-icon v-if="computedPerPage === option.value" color="primary" size="small">
                                 mdi-check-circle
                             </v-icon>
                             <v-icon v-else size="small" class="text-grey">
@@ -38,8 +38,8 @@
         </v-menu>
 
         <!-- Pagination -->
-        <div v-if="pagination.last_page > 1 && perPage !== 'all'" class="pagination-wrapper">
-            <v-pagination :model-value="currentPage" :length="pagination.last_page" :total-visible="7"
+        <div v-if="computedPagination.last_page > 1 && computedPerPage !== 'all'" class="pagination-wrapper">
+            <v-pagination :model-value="computedCurrentPage" :length="computedPagination.last_page" :total-visible="7"
                 density="comfortable" @update:model-value="onPageChange" class="pagination-component"
                 show-first-last-page first-icon="mdi-page-first" last-icon="mdi-page-last">
             </v-pagination>
@@ -48,6 +48,8 @@
 </template>
 
 <script>
+import { defaultPaginationState, paginationUtils } from '../../utils/pagination.js';
+
 export default {
     name: 'PaginationControls',
     props: {
@@ -57,13 +59,7 @@ export default {
         },
         pagination: {
             type: Object,
-            required: true,
-            default: () => ({
-                current_page: 1,
-                last_page: 1,
-                per_page: 10,
-                total: 0
-            })
+            default: null
         },
         perPageValue: {
             type: [Number, String],
@@ -71,58 +67,117 @@ export default {
         },
         perPageOptions: {
             type: Array,
-            default: () => [
-                { title: '10', value: 10, description: 'Quick view' },
-                { title: '25', value: 25, description: 'Standard' },
-                { title: '50', value: 50, description: 'Comfortable' },
-                { title: '100', value: 100, description: 'Extended' },
-                { title: '500', value: 500, description: 'Large dataset' },
-                { title: 'Show All', value: 'all', description: 'All records' }
-            ]
+            default: null
         }
     },
-    emits: ['update:modelValue', 'update:perPage', 'page-change', 'per-page-change'],
+    emits: ['update:modelValue', 'update:perPage', 'page-change', 'per-page-change', 'update:pagination'],
     data() {
         return {
-            localPerPage: this.perPageValue
+            // Use centralized default pagination state
+            currentPage: this.modelValue || defaultPaginationState.currentPage,
+            localPerPage: this.perPageValue || defaultPaginationState.perPage,
+            defaultPerPageOptions: defaultPaginationState.perPageOptions,
+            localPagination: this.pagination || { ...defaultPaginationState.pagination }
         };
     },
     computed: {
-        currentPage: {
+        computedCurrentPage: {
             get() {
-                return this.modelValue;
+                return this.modelValue !== undefined ? this.modelValue : this.currentPage;
             },
             set(value) {
+                this.currentPage = value;
                 this.$emit('update:modelValue', value);
             }
         },
-        perPage: {
+        computedPerPage: {
             get() {
-                return this.localPerPage;
+                return this.perPageValue !== undefined ? this.perPageValue : this.localPerPage;
             },
             set(value) {
                 this.localPerPage = value;
                 this.$emit('update:perPage', value);
             }
+        },
+        computedPagination() {
+            return this.pagination || this.localPagination;
+        },
+        computedPerPageOptions() {
+            return this.perPageOptions || this.defaultPerPageOptions;
         }
     },
     watch: {
+        modelValue(newValue) {
+            if (newValue !== undefined) {
+                this.currentPage = newValue;
+            }
+        },
         perPageValue(newValue) {
-            this.localPerPage = newValue;
+            if (newValue !== undefined) {
+                this.localPerPage = newValue;
+            }
+        },
+        pagination: {
+            handler(newValue) {
+                if (newValue) {
+                    this.localPagination = { ...newValue };
+                }
+            },
+            deep: true
         }
+    },
+    provide() {
+        return {
+            paginationState: {
+                currentPage: () => this.computedCurrentPage,
+                perPage: () => this.computedPerPage,
+                pagination: () => this.computedPagination,
+                perPageOptions: () => this.computedPerPageOptions,
+                buildPaginationParams: this.buildPaginationParams,
+                updatePagination: this.updatePagination,
+                resetPagination: this.resetPagination
+            }
+        };
     },
     methods: {
         selectPerPage(value) {
-            this.perPage = value;
+            this.computedPerPage = value;
+            this.$emit('update:perPage', value);
             this.$emit('per-page-change', value);
         },
         getPerPageLabel() {
-            const option = this.perPageOptions.find(opt => opt.value === this.perPage);
+            const option = this.computedPerPageOptions.find(opt => opt.value === this.computedPerPage);
             return option ? option.title : '10';
         },
         onPageChange(page) {
-            this.currentPage = page;
+            this.computedCurrentPage = page;
+            this.$emit('update:modelValue', page);
             this.$emit('page-change', page);
+        },
+        // Pagination utility methods using centralized utilities
+        buildPaginationParams(additionalParams = {}, sortBy = null, sortDirection = 'asc') {
+            return paginationUtils.buildPaginationParams(
+                this.computedCurrentPage,
+                this.computedPerPage,
+                additionalParams,
+                sortBy,
+                sortDirection
+            );
+        },
+        updatePagination(responseData) {
+            if (responseData) {
+                const paginationState = {
+                    perPage: this.computedPerPage,
+                    pagination: this.localPagination
+                };
+                paginationUtils.updatePagination(paginationState, responseData);
+                this.localPagination = paginationState.pagination;
+                this.$emit('update:pagination', paginationState.pagination);
+            }
+        },
+        resetPagination() {
+            this.computedCurrentPage = 1;
+            this.$emit('update:modelValue', 1);
         }
     }
 };

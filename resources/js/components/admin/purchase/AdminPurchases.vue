@@ -203,6 +203,7 @@ import commonMixin from '../../../mixins/commonMixin';
 import PurchaseDialog from './dialogs/PurchaseDialog.vue';
 import ViewPurchaseDialog from './dialogs/ViewPurchaseDialog.vue';
 import PaginationControls from '../../common/PaginationControls.vue';
+import { defaultPaginationState, paginationUtils } from '../../../utils/pagination.js';
 
 export default {
     components: {
@@ -233,7 +234,24 @@ export default {
             editingPurchase: null,
             saving: false,
             viewDialog: false,
-            viewingPurchase: null
+            viewingPurchase: null,
+            // Pagination state
+            currentPage: 1,
+            perPage: 10,
+            perPageOptions: [
+                { title: '10', value: 10, description: 'Quick view' },
+                { title: '25', value: 25, description: 'Standard' },
+                { title: '50', value: 50, description: 'Comfortable' },
+                { title: '100', value: 100, description: 'Extended' },
+                { title: '500', value: 500, description: 'Large dataset' },
+                { title: 'Show All', value: 'all', description: 'All records' }
+            ],
+            pagination: {
+                current_page: 1,
+                last_page: 1,
+                per_page: 10,
+                total: 0
+            },
         };
     },
     async mounted() {
@@ -415,6 +433,21 @@ export default {
             };
             return colors[status] || 'default';
         },
+        buildPaginationParams(additionalParams = {}) {
+            return paginationUtils.buildPaginationParams(
+                this.currentPage,
+                this.perPage,
+                additionalParams,
+                this.sortBy,
+                this.sortDirection
+            );
+        },
+        updatePagination(responseData) {
+            paginationUtils.updatePagination(this, responseData);
+        },
+        resetPagination() {
+            paginationUtils.resetPagination(this);
+        },
         onPerPageUpdate(value) {
             this.perPage = value;
             this.onPerPageChange();
@@ -429,6 +462,7 @@ export default {
         },
         onSort(field) {
             this.handleSort(field);
+            this.currentPage = 1; // Reset to first page when sorting changes
             this.loadPurchases();
         }
     }

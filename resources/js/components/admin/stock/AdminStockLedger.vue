@@ -173,6 +173,7 @@
 <script>
 import commonMixin from '../../../mixins/commonMixin';
 import PaginationControls from '../../common/PaginationControls.vue';
+import { defaultPaginationState, paginationUtils } from '../../../utils/pagination.js';
 
 export default {
     components: {
@@ -203,6 +204,11 @@ export default {
             ],
             dateFrom: null,
             dateTo: null,
+            // Pagination state - using centralized defaults
+            currentPage: defaultPaginationState.currentPage,
+            perPage: defaultPaginationState.perPage,
+            perPageOptions: defaultPaginationState.perPageOptions,
+            pagination: { ...defaultPaginationState.pagination },
         };
     },
     async mounted() {
@@ -302,6 +308,21 @@ export default {
                 maximumFractionDigits: 2
             }).format(value);
         },
+        buildPaginationParams(additionalParams = {}) {
+            return paginationUtils.buildPaginationParams(
+                this.currentPage,
+                this.perPage,
+                additionalParams,
+                this.sortBy,
+                this.sortDirection
+            );
+        },
+        updatePagination(responseData) {
+            paginationUtils.updatePagination(this, responseData);
+        },
+        resetPagination() {
+            paginationUtils.resetPagination(this);
+        },
         onPerPageUpdate(value) {
             this.perPage = value;
             this.onPerPageChange();
@@ -316,6 +337,7 @@ export default {
         },
         onSort(field) {
             this.handleSort(field);
+            this.currentPage = 1; // Reset to first page when sorting changes
             this.loadLedger();
         },
     }

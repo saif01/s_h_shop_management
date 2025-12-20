@@ -233,6 +233,7 @@
 import commonMixin from '../../../mixins/commonMixin';
 import { normalizeUploadPath, resolveUploadUrl } from '../../../utils/uploads';
 import PaginationControls from '../../common/PaginationControls.vue';
+import { defaultPaginationState, paginationUtils } from '../../../utils/pagination.js';
 
 export default {
     components: {
@@ -263,6 +264,11 @@ export default {
             },
             imageFile: null,
             uploadingImage: false,
+            // Pagination state - using centralized defaults
+            currentPage: defaultPaginationState.currentPage,
+            perPage: defaultPaginationState.perPage,
+            perPageOptions: defaultPaginationState.perPageOptions,
+            pagination: { ...defaultPaginationState.pagination },
         };
     },
     async mounted() {
@@ -492,6 +498,21 @@ export default {
                 this.handleApiError(error, 'Error deleting category');
             }
         },
+        buildPaginationParams(additionalParams = {}) {
+            return paginationUtils.buildPaginationParams(
+                this.currentPage,
+                this.perPage,
+                additionalParams,
+                this.sortBy,
+                this.sortDirection
+            );
+        },
+        updatePagination(responseData) {
+            paginationUtils.updatePagination(this, responseData);
+        },
+        resetPagination() {
+            paginationUtils.resetPagination(this);
+        },
         onPerPageChange() {
             this.resetPagination();
             this.loadCategories();
@@ -506,6 +527,7 @@ export default {
         },
         onSort(field) {
             this.handleSort(field);
+            this.currentPage = 1; // Reset to first page when sorting changes
             this.loadCategories();
         },
         isSortingBy(field) {

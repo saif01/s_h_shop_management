@@ -210,6 +210,7 @@
 import commonMixin from '../../../mixins/commonMixin';
 import ProductDialog from './dialogs/ProductDialog.vue';
 import PaginationControls from '../../common/PaginationControls.vue';
+import { defaultPaginationState, paginationUtils } from '../../../utils/pagination.js';
 
 export default {
     name: 'AdminProducts',
@@ -230,6 +231,11 @@ export default {
             activeFilter: null,
             dialog: false,
             editingProduct: null,
+            // Pagination state - using centralized defaults
+            currentPage: defaultPaginationState.currentPage,
+            perPage: defaultPaginationState.perPage,
+            perPageOptions: defaultPaginationState.perPageOptions,
+            pagination: { ...defaultPaginationState.pagination },
         };
     },
     async mounted() {
@@ -318,6 +324,21 @@ export default {
             if (stockQty <= 0) return 'error';
             if (minStock > 0 && stockQty <= minStock) return 'warning';
             return 'success';
+        },
+        buildPaginationParams(additionalParams = {}) {
+            return paginationUtils.buildPaginationParams(
+                this.currentPage,
+                this.perPage,
+                additionalParams,
+                this.sortBy,
+                this.sortDirection
+            );
+        },
+        updatePagination(responseData) {
+            paginationUtils.updatePagination(this, responseData);
+        },
+        resetPagination() {
+            paginationUtils.resetPagination(this);
         },
         onPerPageChange() {
             this.resetPagination();
