@@ -22,8 +22,12 @@
                             <v-card variant="flat" class="mb-3 search-card" elevation="1">
                                 <v-card-text class="pa-3">
                                     <v-text-field v-model="productSearch" label="Search Product (Name/SKU/Barcode)"
+                                        placeholder="Type product name, SKU, or barcode and press Enter"
                                         prepend-inner-icon="mdi-magnify" clearable autofocus variant="outlined"
-                                        hide-details @keyup.enter="searchProducts" @click:clear="searchResults = []" />
+                                        hide-details="auto"
+                                        hint="Search by product name, SKU, or barcode. Press Enter to search"
+                                        persistent-hint @keyup.enter="searchProducts"
+                                        @click:clear="searchResults = []" />
 
                                     <!-- Most Sold Products Chips -->
                                     <div v-if="mostSoldProducts.length > 0 && searchResults.length === 0" class="mt-3">
@@ -141,20 +145,31 @@
                                     <!-- Customer & Warehouse -->
                                     <div class="mb-2">
                                         <v-autocomplete v-model="form.customer_id" :items="customers" item-value="id"
-                                            item-title="name" label="Customer *" clearable density="compact"
-                                            variant="outlined" hide-details :rules="[rules.required]">
+                                            item-title="name" placeholder="Select or search for a customer" clearable
+                                            density="compact" variant="outlined" hide-details="auto"
+                                            :rules="[rules.required]" hint="Select the customer for this sale"
+                                            persistent-hint>
                                             <template #prepend-inner>
                                                 <v-icon size="18">mdi-account</v-icon>
+                                            </template>
+                                            <template #label>
+                                                Customer <span class="text-error"
+                                                    style="font-size: 1.2em; font-weight: bold;">*</span>
                                             </template>
                                         </v-autocomplete>
                                     </div>
 
                                     <div class="mb-2">
                                         <v-select v-model="form.warehouse_id" :items="warehouses" item-value="id"
-                                            item-title="name" label="Warehouse *" density="compact" variant="outlined"
-                                            hide-details :rules="[rules.required]">
+                                            item-title="name" placeholder="Select warehouse" density="compact"
+                                            variant="outlined" hide-details="auto" :rules="[rules.required]"
+                                            hint="Select the warehouse for this sale" persistent-hint>
                                             <template #prepend-inner>
                                                 <v-icon size="18">mdi-warehouse</v-icon>
+                                            </template>
+                                            <template #label>
+                                                Warehouse <span class="text-error"
+                                                    style="font-size: 1.2em; font-weight: bold;">*</span>
                                             </template>
                                         </v-select>
                                     </div>
@@ -162,14 +177,22 @@
                                     <!-- Dates -->
                                     <v-row dense class="ma-0 mb-2">
                                         <v-col cols="6" class="pa-1">
-                                            <DatePickerVuetifyInput fieldLabel="Invoice Date" required="true"
-                                                variant="outlined" :initialDate="form.invoice_date"
+                                            <DatePickerVuetifyInput field-label="Invoice Date" required="true"
+                                                variant="outlined" :initial-date="form.invoice_date"
                                                 @trigerInputValue="(val) => { form.invoice_date = val; }" />
+                                            <div class="text-caption text-grey mt-1 ml-2">
+                                                <span class="text-error"
+                                                    style="font-size: 1.1em; font-weight: bold;">*</span>
+                                                Select the invoice date
+                                            </div>
                                         </v-col>
                                         <v-col cols="6" class="pa-1">
-                                            <DatePickerVuetifyInput fieldLabel="Due Date" variant="outlined"
-                                                :initialDate="form.due_date"
+                                            <DatePickerVuetifyInput field-label="Due Date" variant="outlined"
+                                                :initial-date="form.due_date"
                                                 @trigerInputValue="(val) => { form.due_date = val; }" />
+                                            <div class="text-caption text-grey mt-1 ml-2">
+                                                Optional: Select payment due date
+                                            </div>
                                         </v-col>
                                     </v-row>
 
@@ -234,8 +257,10 @@
 
                                         <div class="mb-2">
                                             <v-text-field v-model.number="form.paid_amount" type="number"
-                                                label="Paid Amount" density="compact" variant="outlined" min="0"
-                                                step="0.01" prepend-inner-icon="mdi-cash"
+                                                label="Paid Amount" placeholder="Enter paid amount (e.g., 1000.00)"
+                                                density="compact" variant="outlined" min="0" step="0.01"
+                                                prepend-inner-icon="mdi-cash" hide-details="auto"
+                                                hint="Enter the amount paid by the customer" persistent-hint
                                                 @update:model-value="calculateBalance" />
                                         </div>
 
@@ -248,16 +273,19 @@
 
                                         <div v-if="form.paid_amount > 0" class="mb-2">
                                             <v-select v-model="paymentMethod" :items="paymentMethods"
-                                                label="Payment Method" density="compact" variant="outlined"
-                                                hide-details />
+                                                label="Payment Method" placeholder="Select payment method"
+                                                density="compact" variant="outlined" hide-details="auto"
+                                                hint="Select how the customer paid" persistent-hint />
                                         </div>
                                     </div>
 
                                     <v-divider class="my-2" />
 
                                     <!-- Notes -->
-                                    <v-textarea v-model="form.notes" label="Notes" rows="2" density="compact"
-                                        variant="outlined" hide-details />
+                                    <v-textarea v-model="form.notes" label="Notes"
+                                        placeholder="Enter any additional notes about this sale (optional)" rows="2"
+                                        density="compact" variant="outlined" hide-details="auto"
+                                        hint="Optional: Additional notes or comments about this sale" persistent-hint />
                                 </v-card-text>
                             </v-card>
                         </v-col>
