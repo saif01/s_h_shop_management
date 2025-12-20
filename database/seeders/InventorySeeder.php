@@ -60,21 +60,138 @@ class InventorySeeder extends Seeder
         );
 
         // Suppliers
-        $supplier = Supplier::firstOrCreate([
-            'phone' => '01700000000',
-        ], [
-            'name' => 'Default Supplier',
-            'address' => 'Dhaka',
-            'email' => 'supplier@example.com',
-        ]);
+        $suppliersData = [
+            [
+                'code' => 'SUP-001',
+                'name' => 'ABC Trading Company',
+                'company_name' => 'ABC Trading Company Ltd.',
+                'email' => 'contact@abctrading.com',
+                'phone' => '01700000001',
+                'mobile' => '01700000001',
+                'address' => '123 Business Street, Motijheel',
+                'city' => 'Dhaka',
+                'state' => 'Dhaka',
+                'country' => 'Bangladesh',
+                'postal_code' => '1200',
+                'tax_id' => 'TAX-001',
+                'opening_balance' => 0,
+                'current_balance' => 50000.00,
+                'notes' => 'Primary supplier for electronics and gadgets',
+                'is_active' => true,
+            ],
+            [
+                'code' => 'SUP-002',
+                'name' => 'XYZ Wholesale Mart',
+                'company_name' => 'XYZ Wholesale Mart Pvt. Ltd.',
+                'email' => 'info@xyzmart.com',
+                'phone' => '01700000002',
+                'mobile' => '01700000002',
+                'address' => '456 Market Road, Gulshan',
+                'city' => 'Dhaka',
+                'state' => 'Dhaka',
+                'country' => 'Bangladesh',
+                'postal_code' => '1212',
+                'tax_id' => 'TAX-002',
+                'opening_balance' => 0,
+                'current_balance' => 25000.00,
+                'notes' => 'Bulk supplier for grocery items',
+                'is_active' => true,
+            ],
+            [
+                'code' => 'SUP-003',
+                'name' => 'Global Imports Ltd',
+                'company_name' => 'Global Imports Limited',
+                'email' => 'sales@globalimports.com',
+                'phone' => '01700000003',
+                'mobile' => '01700000003',
+                'address' => '789 Import Zone, Chittagong',
+                'city' => 'Chittagong',
+                'state' => 'Chittagong',
+                'country' => 'Bangladesh',
+                'postal_code' => '4000',
+                'tax_id' => 'TAX-003',
+                'opening_balance' => 0,
+                'current_balance' => 75000.00,
+                'notes' => 'International goods supplier',
+                'is_active' => true,
+            ],
+        ];
+
+        $suppliers = [];
+        foreach ($suppliersData as $supplierData) {
+            $suppliers[] = Supplier::firstOrCreate(
+                ['code' => $supplierData['code']],
+                $supplierData
+            );
+        }
+        $supplier = $suppliers[0]; // Use first supplier for sample sale
 
         // Customers
-        $customer = Customer::firstOrCreate([
-            'phone' => '01800000000',
-        ], [
-            'name' => 'Walk-in Customer',
-            'address' => 'N/A',
-        ]);
+        $customersData = [
+            [
+                'code' => 'CUS-001',
+                'name' => 'Walk-in Customer',
+                'company_name' => null,
+                'email' => null,
+                'phone' => '01800000001',
+                'mobile' => '01800000001',
+                'address' => 'N/A',
+                'city' => null,
+                'state' => null,
+                'country' => null,
+                'postal_code' => null,
+                'tax_id' => null,
+                'opening_balance' => 0,
+                'current_balance' => 0,
+                'notes' => 'Default walk-in customer',
+                'is_active' => true,
+            ],
+            [
+                'code' => 'CUS-002',
+                'name' => 'Ahmed Rahman',
+                'company_name' => 'Rahman Enterprises',
+                'email' => 'ahmed.rahman@email.com',
+                'phone' => '01800000002',
+                'mobile' => '01800000002',
+                'address' => '12 Residential Area, Dhanmondi',
+                'city' => 'Dhaka',
+                'state' => 'Dhaka',
+                'country' => 'Bangladesh',
+                'postal_code' => '1205',
+                'tax_id' => null,
+                'opening_balance' => 0,
+                'current_balance' => 15000.00,
+                'notes' => 'Regular customer with credit account',
+                'is_active' => true,
+            ],
+            [
+                'code' => 'CUS-003',
+                'name' => 'Fatima Begum',
+                'company_name' => 'Fatima Retail Store',
+                'email' => 'fatima@retailstore.com',
+                'phone' => '01800000003',
+                'mobile' => '01800000003',
+                'address' => '45 Shop Road, Uttara',
+                'city' => 'Dhaka',
+                'state' => 'Dhaka',
+                'country' => 'Bangladesh',
+                'postal_code' => '1230',
+                'tax_id' => 'CUS-TAX-003',
+                'opening_balance' => 0,
+                'current_balance' => 8000.00,
+                'notes' => 'Retail store owner, regular bulk orders',
+                'is_active' => true,
+            ],
+        ];
+
+        $customers = [];
+        foreach ($customersData as $customerData) {
+            $customers[] = Customer::firstOrCreate(
+                ['code' => $customerData['code']],
+                $customerData
+            );
+        }
+        $customer = $customers[0]; // Use first customer for sample sale
 
         // Products + stock
         $products = [

@@ -11,17 +11,12 @@
         <v-card class="mb-4">
             <v-card-text>
                 <v-row>
-                    <v-col cols="12" md="3">
-                        <v-select v-model="perPage" :items="perPageOptions" label="Items per page"
-                            prepend-inner-icon="mdi-format-list-numbered" variant="outlined" density="compact"
-                            @update:model-value="onPerPageChange"></v-select>
-                    </v-col>
-                    <v-col cols="12" md="3">
+                    <v-col cols="12" md="4">
                         <v-select v-model="activeFilter" :items="activeOptions" label="Filter by Status"
                             variant="outlined" density="compact" clearable
                             @update:model-value="loadCustomers"></v-select>
                     </v-col>
-                    <v-col cols="12" md="6">
+                    <v-col cols="12" md="8">
                         <v-text-field v-model="search" label="Search by name, code, company, email, phone"
                             prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" clearable
                             @input="loadCustomers"></v-text-field>
@@ -42,13 +37,83 @@
                 <v-table>
                     <thead>
                         <tr>
-                            <th>Code</th>
-                            <th>Name</th>
-                            <th>Company</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>City</th>
-                            <th>Balance</th>
+                            <th class="sortable" @click="onSort('code')">
+                                <div class="sortable-header">
+                                    <span>Code</span>
+                                    <v-icon v-if="sortBy === 'code'" size="18" class="sort-icon active">
+                                        {{ sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
+                                    </v-icon>
+                                    <v-icon v-else size="18" class="sort-icon inactive">
+                                        mdi-unfold-more-horizontal
+                                    </v-icon>
+                                </div>
+                            </th>
+                            <th class="sortable" @click="onSort('name')">
+                                <div class="sortable-header">
+                                    <span>Name</span>
+                                    <v-icon v-if="sortBy === 'name'" size="18" class="sort-icon active">
+                                        {{ sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
+                                    </v-icon>
+                                    <v-icon v-else size="18" class="sort-icon inactive">
+                                        mdi-unfold-more-horizontal
+                                    </v-icon>
+                                </div>
+                            </th>
+                            <th class="sortable" @click="onSort('company_name')">
+                                <div class="sortable-header">
+                                    <span>Company</span>
+                                    <v-icon v-if="sortBy === 'company_name'" size="18" class="sort-icon active">
+                                        {{ sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
+                                    </v-icon>
+                                    <v-icon v-else size="18" class="sort-icon inactive">
+                                        mdi-unfold-more-horizontal
+                                    </v-icon>
+                                </div>
+                            </th>
+                            <th class="sortable" @click="onSort('email')">
+                                <div class="sortable-header">
+                                    <span>Email</span>
+                                    <v-icon v-if="sortBy === 'email'" size="18" class="sort-icon active">
+                                        {{ sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
+                                    </v-icon>
+                                    <v-icon v-else size="18" class="sort-icon inactive">
+                                        mdi-unfold-more-horizontal
+                                    </v-icon>
+                                </div>
+                            </th>
+                            <th class="sortable" @click="onSort('phone')">
+                                <div class="sortable-header">
+                                    <span>Phone</span>
+                                    <v-icon v-if="sortBy === 'phone'" size="18" class="sort-icon active">
+                                        {{ sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
+                                    </v-icon>
+                                    <v-icon v-else size="18" class="sort-icon inactive">
+                                        mdi-unfold-more-horizontal
+                                    </v-icon>
+                                </div>
+                            </th>
+                            <th class="sortable" @click="onSort('city')">
+                                <div class="sortable-header">
+                                    <span>City</span>
+                                    <v-icon v-if="sortBy === 'city'" size="18" class="sort-icon active">
+                                        {{ sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
+                                    </v-icon>
+                                    <v-icon v-else size="18" class="sort-icon inactive">
+                                        mdi-unfold-more-horizontal
+                                    </v-icon>
+                                </div>
+                            </th>
+                            <th class="sortable" @click="onSort('current_balance')">
+                                <div class="sortable-header">
+                                    <span>Balance</span>
+                                    <v-icon v-if="sortBy === 'current_balance'" size="18" class="sort-icon active">
+                                        {{ sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
+                                    </v-icon>
+                                    <v-icon v-else size="18" class="sort-icon inactive">
+                                        mdi-unfold-more-horizontal
+                                    </v-icon>
+                                </div>
+                            </th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -102,19 +167,25 @@
                 <!-- Pagination -->
                 <div
                     class="d-flex flex-column flex-md-row justify-space-between align-center align-md-start gap-3 mt-4">
+                    <!-- Left: Records Info -->
                     <div class="text-caption text-grey">
                         <span v-if="customers.length > 0 && pagination.total > 0">
-                            Showing <strong>{{ ((currentPage - 1) * perPage) + 1 }}</strong> to
-                            <strong>{{ Math.min(currentPage * perPage, pagination.total) }}</strong> of
-                            <strong>{{ pagination.total.toLocaleString() }}</strong> records
+                            <span v-if="perPage === 'all'">
+                                Showing <strong>all {{ pagination.total.toLocaleString() }}</strong> records
+                            </span>
+                            <span v-else>
+                                Showing <strong>{{ ((currentPage - 1) * perPage) + 1 }}</strong> to
+                                <strong>{{ Math.min(currentPage * perPage, pagination.total) }}</strong> of
+                                <strong>{{ pagination.total.toLocaleString() }}</strong> records
+                            </span>
                         </span>
                         <span v-else>No records found</span>
                     </div>
-                    <div v-if="pagination.last_page > 1" class="d-flex align-center gap-2">
-                        <v-pagination v-model="currentPage" :length="pagination.last_page" :total-visible="7"
-                            density="comfortable" @update:model-value="loadCustomers">
-                        </v-pagination>
-                    </div>
+
+                    <!-- Right: Items Per Page and Pagination -->
+                    <PaginationControls v-model="currentPage" :pagination="pagination" :per-page-value="perPage"
+                        :per-page-options="perPageOptions" @update:per-page="onPerPageUpdate"
+                        @page-change="onPageChange" />
                 </div>
             </v-card-text>
         </v-card>
@@ -130,11 +201,14 @@
 
 <script>
 import commonMixin from '../../../mixins/commonMixin';
+import PaginationControls from '../../common/PaginationControls.vue';
+import { defaultPaginationState, paginationUtils } from '../../../utils/pagination.js';
 import CustomerDialog from './dialogs/CustomerDialog.vue';
 import CustomerViewDialog from './dialogs/CustomerViewDialog.vue';
 
 export default {
     components: {
+        PaginationControls,
         CustomerDialog,
         CustomerViewDialog
     },
@@ -150,7 +224,12 @@ export default {
             dialog: false,
             viewDialog: false,
             selectedCustomer: null,
-            editingCustomer: null
+            editingCustomer: null,
+            // Pagination state - using centralized defaults
+            currentPage: defaultPaginationState.currentPage,
+            perPage: defaultPaginationState.perPage,
+            perPageOptions: defaultPaginationState.perPageOptions,
+            pagination: { ...defaultPaginationState.pagination },
         };
     },
     async mounted() {
@@ -161,6 +240,11 @@ export default {
             try {
                 this.loading = true;
                 const params = this.buildPaginationParams();
+
+                // Handle "Show All" option
+                if (this.perPage === 'all') {
+                    params.per_page = 999999; // Very large number to get all records
+                }
 
                 if (this.search) {
                     params.search = this.search;
@@ -228,10 +312,47 @@ export default {
                 maximumFractionDigits: 2
             }).format(value);
         },
+        buildPaginationParams(additionalParams = {}) {
+            return paginationUtils.buildPaginationParams(
+                this.currentPage,
+                this.perPage,
+                additionalParams,
+                this.sortBy,
+                this.sortDirection
+            );
+        },
+        updatePagination(responseData) {
+            paginationUtils.updatePagination(this, responseData);
+        },
+        resetPagination() {
+            paginationUtils.resetPagination(this);
+        },
         onPerPageChange() {
             this.resetPagination();
             this.loadCustomers();
-        }
+        },
+        onPerPageUpdate(value) {
+            this.perPage = value;
+            this.onPerPageChange();
+        },
+        onPageChange(page) {
+            this.currentPage = page;
+            this.loadCustomers();
+        },
+        onSort(field) {
+            this.handleSort(field);
+            this.currentPage = 1; // Reset to first page when sorting changes
+            this.loadCustomers();
+        },
+        isSortingBy(field) {
+            return this.sortBy === field;
+        },
+        getSortDirection(field) {
+            if (this.sortBy === field) {
+                return this.sortDirection;
+            }
+            return null;
+        },
     }
 };
 </script>
