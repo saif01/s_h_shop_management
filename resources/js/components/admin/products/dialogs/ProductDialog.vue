@@ -11,7 +11,7 @@
             <v-card-text class="pa-3">
                 <v-form ref="formRef" v-model="formValid" lazy-validation>
                     <v-row dense class="ma-0">
-                        <v-col cols="12" sm="8" class="pa-2">
+                        <v-col cols="12" class="pa-2">
                             <v-text-field v-model="form.name"
                                 placeholder="Enter product name (e.g., Samsung Galaxy S21)" :rules="[rules.required]"
                                 density="compact" variant="outlined" hide-details="auto"
@@ -21,9 +21,6 @@
                                         style="font-size: 1.2em; font-weight: bold;">*</span>
                                 </template>
                             </v-text-field>
-                        </v-col>
-                        <v-col cols="12" sm="4" class="pa-2 d-flex align-center">
-                            <v-switch v-model="form.is_active" inset label="Active" density="compact" hide-details />
                         </v-col>
                         <v-col cols="12" sm="6" class="pa-2">
                             <v-text-field v-model="form.sku" label="SKU"
@@ -39,7 +36,12 @@
                         <v-col cols="12" sm="6" class="pa-2">
                             <v-text-field v-model="form.barcode" label="Barcode"
                                 placeholder="Enter barcode (e.g., 1234567890123)" density="compact" variant="outlined"
-                                hide-details="auto" hint="Optional: Product barcode for scanning" persistent-hint />
+                                hide-details="auto" hint="Optional: Product barcode for scanning" persistent-hint>
+                                <template #append-inner>
+                                    <v-btn icon="mdi-refresh" size="x-small" variant="text" @click="generateBarcode"
+                                        :title="'Generate Barcode'" />
+                                </template>
+                            </v-text-field>
                         </v-col>
                         <v-col cols="12" sm="6" class="pa-2">
                             <v-text-field v-model="form.brand" label="Brand"
@@ -103,6 +105,10 @@
                                 placeholder="Enter product description (optional)" density="compact" variant="outlined"
                                 hide-details="auto" hint="Optional: Detailed description of the product"
                                 persistent-hint />
+                        </v-col>
+                        <v-col cols="12" class="pa-2 d-flex align-center">
+                            <v-switch v-model="form.is_active" :color="form.is_active ? 'success' : 'error'"
+                                label="Active Status" density="compact" hide-details inset class="active-switch" />
                         </v-col>
                     </v-row>
                 </v-form>
@@ -266,6 +272,28 @@ export default {
             }
             this.form.sku = sku;
         },
+        generateBarcode() {
+            // Generate 13-digit EAN-13 barcode (common standard)
+            // Format: 12 digits + 1 check digit
+            let barcode = '';
+
+            // Generate 12 random digits
+            for (let i = 0; i < 12; i++) {
+                barcode += Math.floor(Math.random() * 10).toString();
+            }
+
+            // Calculate EAN-13 check digit
+            let sum = 0;
+            for (let i = 0; i < 12; i++) {
+                const digit = parseInt(barcode[i]);
+                // Odd positions (1-indexed) are multiplied by 1, even by 3
+                sum += (i % 2 === 0) ? digit : digit * 3;
+            }
+            const checkDigit = (10 - (sum % 10)) % 10;
+            barcode += checkDigit.toString();
+
+            this.form.barcode = barcode;
+        },
         close() {
             this.$emit('update:modelValue', false);
         },
@@ -332,6 +360,25 @@ export default {
 :deep(.v-switch--density-compact) {
     margin-top: 0;
     margin-bottom: 0;
+}
+
+.active-switch {
+    flex: 1;
+}
+
+.active-switch :deep(.v-switch__track) {
+    height: 24px;
+    width: 48px;
+}
+
+.active-switch :deep(.v-switch__thumb) {
+    width: 20px;
+    height: 20px;
+}
+
+.active-switch :deep(.v-label) {
+    font-weight: 500;
+    font-size: 0.875rem;
 }
 
 /* Red required field stars */
