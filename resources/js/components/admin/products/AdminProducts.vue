@@ -214,9 +214,9 @@
 
 <script>
 import commonMixin from '../../../mixins/commonMixin';
-import ProductDialog from './dialogs/ProductDialog.vue';
-import ProductViewDialog from './dialogs/ProductViewDialog.vue';
-import StockAdjustmentDialog from './dialogs/StockAdjustmentDialog.vue';
+import ProductDialog from './dialogs/product/ProductDialog.vue';
+import ProductViewDialog from './dialogs/product/ProductViewDialog.vue';
+import StockAdjustmentDialog from './dialogs/product/StockAdjustmentDialog.vue';
 import PaginationControls from '../../common/PaginationControls.vue';
 import { defaultPaginationState, paginationUtils } from '../../../utils/pagination.js';
 

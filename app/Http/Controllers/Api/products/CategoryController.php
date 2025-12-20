@@ -88,13 +88,18 @@ class CategoryController extends Controller
             $validated['order'] = 0;
         }
 
+        // Set created_by to current user
+        $validated['created_by'] = auth()->id();
+
         $category = Category::create($validated);
+        $category->load(['createdBy']);
         
         return response()->json($this->transformCategoryImage($category), 201);
     }
 
     public function show(Category $category)
     {
+        $category->load(['createdBy', 'updatedBy']);
         return response()->json($this->transformCategoryImage($category));
     }
 
@@ -125,7 +130,11 @@ class CategoryController extends Controller
             $validated['image'] = MediaPath::normalize($validated['image']);
         }
 
+        // Set updated_by to current user
+        $validated['updated_by'] = auth()->id();
+
         $category->update($validated);
+        $category->load(['createdBy', 'updatedBy']);
         
         return response()->json($this->transformCategoryImage($category));
     }

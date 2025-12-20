@@ -121,6 +121,8 @@
                                     </v-chip>
                                 </td>
                                 <td>
+                                    <v-btn size="small" icon="mdi-information" @click="openViewDialog(category)"
+                                        variant="text" color="info" :title="'View Category Details'"></v-btn>
                                     <v-btn size="small" icon="mdi-pencil" @click="openDialog(category)" variant="text"
                                         :title="'Edit Category'"></v-btn>
                                     <v-btn size="small" icon="mdi-delete" @click="deleteCategory(category)"
@@ -160,95 +162,26 @@
             </v-card-text>
         </v-card>
 
+        <!-- Category View Dialog -->
+        <CategoryViewDialog v-model="viewDialog" :category="selectedCategory" />
+
         <!-- Category Dialog -->
-        <v-dialog v-model="dialog" max-width="700" scrollable persistent>
-            <v-card>
-                <v-card-title>
-                    {{ editingCategory ? 'Edit Category' : 'Add New Category' }}
-                </v-card-title>
-                <v-card-text class="pa-0">
-                    <v-form ref="form" @submit.prevent="saveCategory">
-                        <div class="pa-6">
-                            <v-text-field v-model="form.name"
-                                placeholder="Enter category name (e.g., Electronics, Clothing)"
-                                :rules="[rules.required]" required variant="outlined" density="comfortable"
-                                hide-details="auto" hint="Enter the category name as it should appear in the system"
-                                persistent-hint class="mb-4">
-                                <template v-slot:label>
-                                    Category Name <span class="text-error"
-                                        style="font-size: 1.2em; font-weight: bold;">*</span>
-                                </template>
-                            </v-text-field>
-
-                            <v-text-field v-model="form.slug" label="Slug"
-                                placeholder="Auto-generated from category name"
-                                hint="Auto-generated from category name (read-only)" persistent-hint variant="outlined"
-                                density="comfortable" hide-details="auto" readonly class="mb-4" />
-
-                            <v-text-field v-model.number="form.order" label="Display Order" type="number" min="0"
-                                placeholder="Enter display order (e.g., 0, 1, 2)"
-                                hint="Lower numbers appear first in the category list" persistent-hint
-                                variant="outlined" density="comfortable" hide-details="auto" class="mb-4" />
-
-                            <v-textarea v-model="form.description" label="Description"
-                                placeholder="Enter a brief description about the category (optional)" variant="outlined"
-                                density="comfortable" rows="3" hint="Optional: Brief description about the category"
-                                persistent-hint hide-details="auto" class="mb-4" />
-
-                            <!-- Image Upload Section -->
-                            <div class="mb-4">
-                                <div class="text-subtitle-2 font-weight-medium mb-2">Category Image</div>
-
-                                <!-- Image Preview -->
-                                <div v-if="form.image" class="mb-3 text-center">
-                                    <v-avatar size="120" class="mb-2">
-                                        <v-img :src="form.image ? resolveImageUrl(form.image) : ''"
-                                            alt="Category Preview"></v-img>
-                                    </v-avatar>
-                                    <div>
-                                        <v-btn size="small" variant="text" color="error" prepend-icon="mdi-delete"
-                                            @click="clearImage">Remove Image</v-btn>
-                                    </div>
-                                </div>
-
-                                <!-- File Upload -->
-                                <v-file-input v-model="imageFile" label="Upload Image" variant="outlined"
-                                    density="comfortable" color="primary" accept="image/*" prepend-icon="mdi-image"
-                                    hint="Upload a category image (JPG, PNG, GIF, WebP - Max 5MB)" persistent-hint
-                                    show-size @update:model-value="handleImageUpload">
-                                    <template v-slot:append-inner v-if="uploadingImage">
-                                        <v-progress-circular indeterminate size="20"
-                                            color="primary"></v-progress-circular>
-                                    </template>
-                                </v-file-input>
-                            </div>
-
-                            <v-switch v-model="form.is_active" label="Active Category" color="success"
-                                class="mb-4"></v-switch>
-                        </div>
-                    </v-form>
-                </v-card-text>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn @click="closeDialog" variant="text">Cancel</v-btn>
-                    <v-btn @click="saveCategory" color="primary" :loading="saving">
-                        {{ editingCategory ? 'Update' : 'Create' }}
-                    </v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
+        <CategoryDialog v-model="dialog" :category="editingCategory" @saved="handleCategorySaved" />
     </div>
 </template>
 
 <script>
 import commonMixin from '../../../mixins/commonMixin';
-import { normalizeUploadPath, resolveUploadUrl } from '../../../utils/uploads';
 import PaginationControls from '../../common/PaginationControls.vue';
 import { defaultPaginationState, paginationUtils } from '../../../utils/pagination.js';
+import CategoryViewDialog from './dialogs/category/CategoryViewDialog.vue';
+import CategoryDialog from './dialogs/category/CategoryDialog.vue';
 
 export default {
     components: {
-        PaginationControls
+        PaginationControls,
+        CategoryViewDialog,
+        CategoryDialog
     },
     mixins: [commonMixin],
     data() {
@@ -261,20 +194,8 @@ export default {
             ],
             dialog: false,
             editingCategory: null,
-            saving: false,
-            form: {
-                name: '',
-                slug: '',
-                description: '',
-                image: '',
-                order: 0,
-                is_active: true,
-            },
-            rules: {
-                required: value => !!value || 'This field is required',
-            },
-            imageFile: null,
-            uploadingImage: false,
+            viewDialog: false,
+            selectedCategory: null,
             // Pagination state - using centralized defaults
             currentPage: defaultPaginationState.currentPage,
             perPage: defaultPaginationState.perPage,
@@ -285,28 +206,7 @@ export default {
     async mounted() {
         await this.loadCategories();
     },
-    watch: {
-        'form.name'(newName) {
-            // Auto-generate slug from name in real-time
-            if (newName) {
-                this.form.slug = this.generateSlug(newName);
-            } else {
-                this.form.slug = '';
-            }
-        }
-    },
     methods: {
-        generateSlug(text) {
-            return text
-                .toString()
-                .toLowerCase()
-                .trim()
-                .replace(/\s+/g, '-')
-                .replace(/[^\w\-]+/g, '')
-                .replace(/\-\-+/g, '-')
-                .replace(/^-+/, '')
-                .replace(/-+$/, '');
-        },
         async loadCategories() {
             try {
                 this.loading = true;
@@ -339,158 +239,15 @@ export default {
             }
         },
         openDialog(category) {
-            this.imageFile = null;
-            if (category) {
-                this.editingCategory = category;
-                const imagePath = this.normalizeImageInput(category.image || '');
-                this.form = {
-                    name: category.name || '',
-                    slug: category.slug || '',
-                    description: category.description || '',
-                    image: imagePath,
-                    order: category.order || 0,
-                    is_active: category.is_active !== undefined ? category.is_active : true,
-                };
-            } else {
-                this.editingCategory = null;
-                this.form = {
-                    name: '',
-                    slug: '',
-                    description: '',
-                    image: '',
-                    order: 0,
-                    is_active: true,
-                };
-            }
+            this.editingCategory = category;
             this.dialog = true;
         },
-        closeDialog() {
-            this.dialog = false;
-            this.editingCategory = null;
-            this.form = {
-                name: '',
-                slug: '',
-                description: '',
-                image: '',
-                order: 0,
-                is_active: true,
-            };
-            this.imageFile = null;
-            if (this.$refs.form) {
-                this.$refs.form.resetValidation();
-            }
+        handleCategorySaved() {
+            this.loadCategories();
         },
-        async handleImageUpload() {
-            if (!this.imageFile) {
-                return;
-            }
-
-            const fileToUpload = Array.isArray(this.imageFile) ? this.imageFile[0] : this.imageFile;
-            if (!fileToUpload) {
-                return;
-            }
-
-            if (!fileToUpload.type.startsWith('image/')) {
-                this.showError('Please select a valid image file');
-                this.imageFile = null;
-                return;
-            }
-
-            const maxSize = 5 * 1024 * 1024;
-            if (fileToUpload.size > maxSize) {
-                this.showError('File size must be less than 5MB');
-                this.imageFile = null;
-                return;
-            }
-
-            this.uploadingImage = true;
-            try {
-                const formData = new FormData();
-                formData.append('image', fileToUpload);
-                formData.append('folder', 'products/categories');
-                if (this.form.name) {
-                    formData.append('prefix', this.form.name);
-                }
-
-                const token = localStorage.getItem('admin_token');
-                const response = await this.$axios.post('/api/v1/upload/image', formData, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'multipart/form-data'
-                    }
-                });
-
-                if (response.data.success) {
-                    const uploadedPath = this.normalizeImageInput(response.data.path || response.data.url);
-                    this.form.image = uploadedPath;
-                    this.imageFile = null;
-                    this.showSuccess('Image uploaded successfully');
-                } else {
-                    throw new Error(response.data.message || 'Failed to upload image');
-                }
-            } catch (error) {
-                console.error('Error uploading image:', error);
-                let errorMessage = 'Failed to upload image';
-                if (error.response) {
-                    errorMessage = error.response.data?.message || error.response.statusText || errorMessage;
-                } else if (error.message) {
-                    errorMessage = error.message;
-                }
-                this.showError(errorMessage);
-                this.imageFile = null;
-            } finally {
-                this.uploadingImage = false;
-            }
-        },
-        clearImage() {
-            this.form.image = '';
-            this.imageFile = null;
-        },
-        async saveCategory() {
-            if (!this.$refs.form.validate()) {
-                return;
-            }
-
-            this.saving = true;
-            try {
-                const token = localStorage.getItem('admin_token');
-                const url = this.editingCategory
-                    ? `/api/v1/categories/${this.editingCategory.id}`
-                    : '/api/v1/categories';
-
-                const data = { ...this.form };
-                data.image = this.normalizeImageInput(data.image);
-
-                const method = this.editingCategory ? 'put' : 'post';
-
-                await axios[method](url, data, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-
-                this.showSuccess(
-                    this.editingCategory ? 'Category updated successfully' : 'Category created successfully'
-                );
-                this.closeDialog();
-                await this.loadCategories();
-            } catch (error) {
-                console.error('Error saving category:', error);
-                let message = 'Error saving category';
-
-                if (error.response?.data?.errors) {
-                    const errors = error.response.data.errors;
-                    const errorMessages = [];
-                    Object.keys(errors).forEach(key => {
-                        errorMessages.push(errors[key][0]);
-                    });
-                    message = errorMessages.join(', ');
-                } else if (error.response?.data?.message) {
-                    message = error.response.data.message;
-                }
-
-                this.showError(message);
-            } finally {
-                this.saving = false;
-            }
+        openViewDialog(category) {
+            this.selectedCategory = category;
+            this.viewDialog = true;
         },
         async deleteCategory(category) {
             if (!confirm(`Are you sure you want to delete ${category.name}?`)) {
@@ -549,12 +306,6 @@ export default {
                 return this.sortDirection;
             }
             return null;
-        },
-        normalizeImageInput(imageValue) {
-            return normalizeUploadPath(imageValue);
-        },
-        resolveImageUrl(value) {
-            return resolveUploadUrl(value);
         },
     }
 };
