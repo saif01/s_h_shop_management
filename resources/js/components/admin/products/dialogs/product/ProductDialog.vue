@@ -67,6 +67,12 @@
                                 persistent-hint />
                         </v-col>
                         <v-col cols="12" sm="6" class="pa-2">
+                            <v-text-field v-model.number="form.order" label="Display Order" type="number" min="0"
+                                placeholder="Enter display order (e.g., 0, 1, 2)" density="compact" variant="outlined"
+                                hide-details="auto" hint="Optional: Lower numbers appear first in the product list"
+                                persistent-hint />
+                        </v-col>
+                        <v-col cols="12" sm="6" class="pa-2">
                             <v-text-field v-model.number="form.purchase_price" type="number" min="0" step="0.01"
                                 placeholder="Enter purchase price (e.g., 1000.00)" :rules="[rules.required]"
                                 density="compact" variant="outlined" hide-details="auto"
@@ -220,6 +226,7 @@ export default {
                 brand: '',
                 category_id: null,
                 unit_id: null,
+                order: 0,
                 description: '',
                 image: '',
                 purchase_price: 0,

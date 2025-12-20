@@ -64,6 +64,17 @@
                                 </div>
                             </th>
                             <th>Category</th>
+                            <th class="text-end sortable" @click="onSort('order')">
+                                <div class="sortable-header justify-end">
+                                    <span>Order</span>
+                                    <v-icon v-if="sortBy === 'order'" size="18" class="sort-icon active">
+                                        {{ sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
+                                    </v-icon>
+                                    <v-icon v-else size="18" class="sort-icon inactive">
+                                        mdi-unfold-more-horizontal
+                                    </v-icon>
+                                </div>
+                            </th>
                             <th class="text-end sortable" @click="onSort('purchase_price')">
                                 <div class="sortable-header justify-end">
                                     <span>Purchase</span>
@@ -118,6 +129,7 @@
                             <td><v-skeleton-loader type="text" width="150"></v-skeleton-loader></td>
                             <td><v-skeleton-loader type="text" width="100"></v-skeleton-loader></td>
                             <td><v-skeleton-loader type="text" width="120"></v-skeleton-loader></td>
+                            <td><v-skeleton-loader type="text" width="60"></v-skeleton-loader></td>
                             <td><v-skeleton-loader type="text" width="80"></v-skeleton-loader></td>
                             <td><v-skeleton-loader type="text" width="80"></v-skeleton-loader></td>
                             <td><v-skeleton-loader type="chip" width="60" height="24"></v-skeleton-loader></td>
@@ -139,6 +151,7 @@
                                 </td>
                                 <td>{{ product.sku || '-' }}</td>
                                 <td>{{ product.category?.name || '-' }}</td>
+                                <td class="text-end">{{ product.order || 0 }}</td>
                                 <td class="text-end">৳{{ parseFloat(product.purchase_price || 0).toFixed(2) }}</td>
                                 <td class="text-end">৳{{ parseFloat(product.sale_price || 0).toFixed(2) }}</td>
                                 <td class="text-end">
@@ -174,7 +187,7 @@
                                 </td>
                             </tr>
                             <tr v-if="products.length === 0">
-                                <td colspan="9" class="text-center py-4">No products found</td>
+                                <td colspan="10" class="text-center py-4">No products found</td>
                             </tr>
                         </template>
                     </tbody>
@@ -245,6 +258,9 @@ export default {
             viewingProduct: null,
             stockDialog: false,
             selectedProduct: null,
+            // Sorting state - default to order ASC
+            sortBy: 'order',
+            sortDirection: 'asc',
             // Pagination state - using centralized defaults
             currentPage: defaultPaginationState.currentPage,
             perPage: defaultPaginationState.perPage,

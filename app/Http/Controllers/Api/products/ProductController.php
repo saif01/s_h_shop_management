@@ -53,7 +53,7 @@ class ProductController extends Controller
         $allowedSortFields = [
             'id', 'name', 'sku', 'barcode', 'brand',
             'purchase_price', 'sale_price', 'tax_rate',
-            'minimum_stock_level', 'is_active', 'created_at', 'updated_at'
+            'minimum_stock_level', 'is_active', 'order', 'created_at', 'updated_at'
         ];
         if (!in_array($sortBy, $allowedSortFields)) {
             $sortBy = 'name';
@@ -95,6 +95,7 @@ class ProductController extends Controller
             'barcode' => 'nullable|string|max:255|unique:products',
             'category_id' => 'nullable|exists:categories,id',
             'unit_id' => 'nullable|exists:units,id',
+            'order' => 'nullable|integer|min:0',
             'description' => 'nullable|string',
             'brand' => 'nullable|string|max:255',
             'image' => 'nullable|string|max:255',
@@ -116,6 +117,10 @@ class ProductController extends Controller
 
         if (!isset($validated['tax_rate'])) {
             $validated['tax_rate'] = 0;
+        }
+
+        if (!isset($validated['order'])) {
+            $validated['order'] = 0;
         }
 
         // Set created_by to current user
@@ -154,6 +159,7 @@ class ProductController extends Controller
             'barcode' => ['nullable', 'string', 'max:255', \Illuminate\Validation\Rule::unique('products')->ignore($product->id)],
             'category_id' => 'nullable|exists:categories,id',
             'unit_id' => 'nullable|exists:units,id',
+            'order' => 'nullable|integer|min:0',
             'description' => 'nullable|string',
             'brand' => 'nullable|string|max:255',
             'image' => 'nullable|string|max:255',

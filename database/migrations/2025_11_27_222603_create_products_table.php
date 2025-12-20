@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('barcode')->nullable()->unique();
             $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete();
             $table->foreignId('unit_id')->nullable()->constrained('units')->nullOnDelete();
+            $table->integer('order')->default(0);
             $table->text('description')->nullable();
             $table->string('brand')->nullable();
             $table->string('image')->nullable();
@@ -26,6 +27,8 @@ return new class extends Migration
             $table->decimal('tax_rate', 5, 2)->default(0); // VAT/Tax optional
             $table->integer('minimum_stock_level')->default(0); // Low-stock alert threshold
             $table->boolean('is_active')->default(true);
+            $table->foreignId('created_by')->nullable()->after('is_active')->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->after('created_by')->constrained('users')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

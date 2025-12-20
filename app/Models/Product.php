@@ -18,6 +18,7 @@ class Product extends Model
         'barcode',
         'category_id',
         'unit_id',
+        'order',
         'description',
         'brand',
         'image',
@@ -35,6 +36,7 @@ class Product extends Model
         'sale_price' => 'decimal:2',
         'tax_rate' => 'decimal:2',
         'is_active' => 'boolean',
+        'order' => 'integer',
     ];
 
     public function category(): BelongsTo

@@ -13,7 +13,7 @@
                     <v-progress-circular indeterminate color="primary" size="48"></v-progress-circular>
                     <div class="mt-3 text-body-2">Loading product details...</div>
                 </div>
-                <div v-else-if="!product" class="text-center py-8">
+                <div v-else-if="!displayProduct" class="text-center py-8">
                     <v-alert type="error" variant="tonal" class="ma-3" density="compact">
                         Failed to load product details
                     </v-alert>
@@ -24,72 +24,72 @@
                     <v-card variant="outlined" class="mb-2">
                         <v-card-text class="pa-2">
                             <v-row dense class="ma-0">
-                                <v-col cols="12" sm="3" class="pa-2" v-if="product.image">
+                                <v-col cols="12" sm="3" class="pa-2" v-if="displayProduct.image">
                                     <div class="text-center">
-                                        <v-img :src="product.image" max-width="120" max-height="120" class="mx-auto"
+                                        <v-img :src="displayProduct.image" max-width="120" max-height="120" class="mx-auto"
                                             style="border-radius: 8px;" cover></v-img>
                                     </div>
                                 </v-col>
-                                <v-col :cols="product.image ? 12 : 12" :sm="product.image ? 9 : 12" class="pa-2">
+                                <v-col :cols="displayProduct.image ? 12 : 12" :sm="displayProduct.image ? 9 : 12" class="pa-2">
                                     <v-row dense class="ma-0">
                                         <v-col cols="12" sm="6" md="4" class="pa-2">
                                             <div class="info-item-compact">
                                                 <span class="text-caption text-grey">ID:</span>
-                                                <span class="text-body-2 font-weight-medium ml-1">{{ product.id || '-'
+                                                <span class="text-body-2 font-weight-medium ml-1">{{ displayProduct.id || '-'
                                                     }}</span>
                                             </div>
                                         </v-col>
                                         <v-col cols="12" sm="6" md="4" class="pa-2">
                                             <div class="info-item-compact">
                                                 <span class="text-caption text-grey">Status:</span>
-                                                <v-chip size="x-small" :color="product.is_active ? 'success' : 'error'"
+                                                <v-chip size="x-small" :color="displayProduct.is_active ? 'success' : 'error'"
                                                     variant="tonal" class="ml-1">
-                                                    {{ product.is_active ? 'Active' : 'Inactive' }}
+                                                    {{ displayProduct.is_active ? 'Active' : 'Inactive' }}
                                                 </v-chip>
                                             </div>
                                         </v-col>
                                         <v-col cols="12" sm="6" md="4" class="pa-2">
                                             <div class="info-item-compact">
                                                 <span class="text-caption text-grey">SKU:</span>
-                                                <span class="text-body-2 ml-1">{{ product.sku || '-' }}</span>
+                                                <span class="text-body-2 ml-1">{{ displayProduct.sku || '-' }}</span>
                                             </div>
                                         </v-col>
                                         <v-col cols="12" sm="6" md="4" class="pa-2">
                                             <div class="info-item-compact">
                                                 <span class="text-caption text-grey">Barcode:</span>
-                                                <span class="text-body-2 ml-1">{{ product.barcode || '-' }}</span>
+                                                <span class="text-body-2 ml-1">{{ displayProduct.barcode || '-' }}</span>
                                             </div>
                                         </v-col>
                                         <v-col cols="12" sm="6" md="4" class="pa-2">
                                             <div class="info-item-compact">
                                                 <span class="text-caption text-grey">Brand:</span>
-                                                <span class="text-body-2 ml-1">{{ product.brand || '-' }}</span>
+                                                <span class="text-body-2 ml-1">{{ displayProduct.brand || '-' }}</span>
                                             </div>
                                         </v-col>
                                         <v-col cols="12" sm="6" md="4" class="pa-2">
                                             <div class="info-item-compact">
                                                 <span class="text-caption text-grey">Category:</span>
-                                                <span class="text-body-2 ml-1">{{ product.category?.name || '-'
+                                                <span class="text-body-2 ml-1">{{ displayProduct.category?.name || '-'
                                                     }}</span>
                                             </div>
                                         </v-col>
                                         <v-col cols="12" sm="6" md="4" class="pa-2">
                                             <div class="info-item-compact">
                                                 <span class="text-caption text-grey">Unit:</span>
-                                                <span class="text-body-2 ml-1">{{ product.unit?.name || '-' }}</span>
+                                                <span class="text-body-2 ml-1">{{ displayProduct.unit?.name || '-' }}</span>
                                             </div>
                                         </v-col>
                                         <v-col cols="12" class="pa-2">
                                             <div class="info-item-compact">
                                                 <span class="text-caption text-grey">Name:</span>
-                                                <span class="text-body-2 font-weight-medium ml-1">{{ product.name || '-'
+                                                <span class="text-body-2 font-weight-medium ml-1">{{ displayProduct.name || '-'
                                                     }}</span>
                                             </div>
                                         </v-col>
-                                        <v-col cols="12" class="pa-2" v-if="product.description">
+                                        <v-col cols="12" class="pa-2" v-if="displayProduct.description">
                                             <div class="info-item-compact">
                                                 <span class="text-caption text-grey">Description:</span>
-                                                <span class="text-body-2 ml-1">{{ product.description }}</span>
+                                                <span class="text-body-2 ml-1">{{ displayProduct.description }}</span>
                                             </div>
                                         </v-col>
                                     </v-row>
@@ -108,20 +108,20 @@
                                     <div class="info-item-compact">
                                         <span class="text-caption text-grey">Purchase:</span>
                                         <span class="text-body-2 font-weight-medium ml-1">৳{{
-                                            parseFloat(product.purchase_price || 0).toFixed(2) }}</span>
+                                            parseFloat(displayProduct.purchase_price || 0).toFixed(2) }}</span>
                                     </div>
                                 </v-col>
                                 <v-col cols="6" sm="3" class="pa-2">
                                     <div class="info-item-compact">
                                         <span class="text-caption text-grey">Sale:</span>
                                         <span class="text-body-2 font-weight-medium ml-1">৳{{
-                                            parseFloat(product.sale_price || 0).toFixed(2) }}</span>
+                                            parseFloat(displayProduct.sale_price || 0).toFixed(2) }}</span>
                                     </div>
                                 </v-col>
                                 <v-col cols="6" sm="2" class="pa-2">
                                     <div class="info-item-compact">
                                         <span class="text-caption text-grey">Tax:</span>
-                                        <span class="text-body-2 ml-1">{{ parseFloat(product.tax_rate || 0).toFixed(1)
+                                        <span class="text-body-2 ml-1">{{ parseFloat(displayProduct.tax_rate || 0).toFixed(1)
                                             }}%</span>
                                     </div>
                                 </v-col>
@@ -151,7 +151,7 @@
                                 <v-col cols="6" sm="4" class="pa-2">
                                     <div class="info-item-compact">
                                         <span class="text-caption text-grey">Min Stock:</span>
-                                        <span class="text-body-2 ml-1">{{ product.minimum_stock_level || 0 }}</span>
+                                        <span class="text-body-2 ml-1">{{ displayProduct.minimum_stock_level || 0 }}</span>
                                     </div>
                                 </v-col>
                             </v-row>
@@ -167,26 +167,26 @@
                                 <v-col cols="12" sm="6" class="pa-2">
                                     <div class="info-item-compact">
                                         <span class="text-caption text-grey">Created By:</span>
-                                        <span class="text-body-2 ml-1">{{ product.created_by?.name || '-' }}</span>
+                                        <span class="text-body-2 ml-1">{{ displayProduct.created_by?.name || '-' }}</span>
                                     </div>
                                 </v-col>
                                 <v-col cols="12" sm="6" class="pa-2">
                                     <div class="info-item-compact">
                                         <span class="text-caption text-grey">Created At:</span>
-                                        <span class="text-body-2 ml-1">{{ formatDateShort(product.created_at) || '-'
+                                        <span class="text-body-2 ml-1">{{ formatDateShort(displayProduct.created_at) || '-'
                                             }}</span>
                                     </div>
                                 </v-col>
                                 <v-col cols="12" sm="6" class="pa-2">
                                     <div class="info-item-compact">
                                         <span class="text-caption text-grey">Updated By:</span>
-                                        <span class="text-body-2 ml-1">{{ product.updated_by?.name || '-' }}</span>
+                                        <span class="text-body-2 ml-1">{{ displayProduct.updated_by?.name || '-' }}</span>
                                     </div>
                                 </v-col>
                                 <v-col cols="12" sm="6" class="pa-2">
                                     <div class="info-item-compact">
                                         <span class="text-caption text-grey">Updated At:</span>
-                                        <span class="text-body-2 ml-1">{{ formatDateShort(product.updated_at) || '-'
+                                        <span class="text-body-2 ml-1">{{ formatDateShort(displayProduct.updated_at) || '-'
                                             }}</span>
                                     </div>
                                 </v-col>
@@ -196,10 +196,10 @@
 
                     <!-- Stock by Warehouse -->
                     <v-divider class="my-2"
-                        v-if="product.stock_by_warehouse && product.stock_by_warehouse.length > 0" />
-                    <div v-if="product.stock_by_warehouse && product.stock_by_warehouse.length > 0"
+                        v-if="displayProduct.stock_by_warehouse && displayProduct.stock_by_warehouse.length > 0" />
+                    <div v-if="displayProduct.stock_by_warehouse && displayProduct.stock_by_warehouse.length > 0"
                         class="text-subtitle-2 font-weight-medium mb-2">Stock by Warehouse</div>
-                    <v-card v-if="product.stock_by_warehouse && product.stock_by_warehouse.length > 0"
+                    <v-card v-if="displayProduct.stock_by_warehouse && displayProduct.stock_by_warehouse.length > 0"
                         variant="outlined" class="mb-2">
                         <v-card-text class="pa-2">
                             <v-table density="compact">
@@ -212,7 +212,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="stock in product.stock_by_warehouse" :key="stock.warehouse_id">
+                                    <tr v-for="stock in displayProduct.stock_by_warehouse" :key="stock.warehouse_id">
                                         <td>
                                             <span class="font-weight-medium">{{ stock.warehouse_name }}</span>
                                             <span v-if="stock.warehouse_code" class="text-caption text-grey ml-1">
@@ -259,23 +259,23 @@ export default {
         };
     },
     computed: {
-        product() {
+        displayProduct() {
             return this.productData || this.product;
         },
         totalStock() {
-            if (!this.product?.stock_by_warehouse || this.product.stock_by_warehouse.length === 0) {
+            if (!this.displayProduct?.stock_by_warehouse || this.displayProduct.stock_by_warehouse.length === 0) {
                 return 0;
             }
-            return this.product.stock_by_warehouse.reduce((sum, stock) => sum + (parseFloat(stock.quantity) || 0), 0);
+            return this.displayProduct.stock_by_warehouse.reduce((sum, stock) => sum + (parseFloat(stock.quantity) || 0), 0);
         },
         profitPerUnit() {
-            const purchasePrice = parseFloat(this.product?.purchase_price || 0);
-            const salePrice = parseFloat(this.product?.sale_price || 0);
+            const purchasePrice = parseFloat(this.displayProduct?.purchase_price || 0);
+            const salePrice = parseFloat(this.displayProduct?.sale_price || 0);
             return salePrice - purchasePrice;
         },
         profitMargin() {
-            const purchasePrice = parseFloat(this.product?.purchase_price || 0);
-            const salePrice = parseFloat(this.product?.sale_price || 0);
+            const purchasePrice = parseFloat(this.displayProduct?.purchase_price || 0);
+            const salePrice = parseFloat(this.displayProduct?.sale_price || 0);
             if (salePrice === 0) return 0;
             return ((salePrice - purchasePrice) / salePrice) * 100;
         },
@@ -315,9 +315,9 @@ export default {
             }
         },
         getStockStatusColor(quantity) {
-            if (!this.product?.minimum_stock_level) return 'default';
+            if (!this.displayProduct?.minimum_stock_level) return 'default';
             if (quantity <= 0) return 'error';
-            if (quantity <= this.product.minimum_stock_level) return 'warning';
+            if (quantity <= this.displayProduct.minimum_stock_level) return 'warning';
             return 'success';
         },
         formatDateShort(dateString) {
