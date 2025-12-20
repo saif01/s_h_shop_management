@@ -164,7 +164,103 @@ table {
     }
 }
 
-// Sortable header hover effect
+// ============================================
+// Sortable Table Headers
+// ============================================
+
+.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s;
+    position: relative;
+}
+
+.sortable:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+.sortable-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: flex-start;
+    width: 100%;
+}
+
+.sortable-header.justify-end {
+    justify-content: flex-end;
+}
+
+.sort-icon {
+    flex-shrink: 0;
+    transition: opacity 0.2s, color 0.2s, background-color 0.2s;
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    line-height: 1 !important;
+    background-color: white;
+    border-radius: 4px;
+    padding: 2px;
+}
+
+.sort-icon.active {
+    opacity: 1 !important;
+    color: rgb(var(--v-theme-primary)) !important;
+    visibility: visible !important;
+    background-color: white !important;
+}
+
+.sort-icon.active svg,
+.sort-icon.active path {
+    fill: currentColor !important;
+    color: rgb(var(--v-theme-primary)) !important;
+    opacity: 1 !important;
+}
+
+.sort-icon.inactive {
+    opacity: 0.7 !important;
+    color: #424242 !important;
+    visibility: visible !important;
+    background-color: white !important;
+}
+
+.sort-icon.inactive svg,
+.sort-icon.inactive path {
+    fill: #424242 !important;
+    color: #424242 !important;
+    opacity: 0.7 !important;
+}
+
+.sortable:hover .sort-icon.inactive {
+    opacity: 1 !important;
+    color: #212121 !important;
+    background-color: white !important;
+}
+
+.sortable:hover .sort-icon.inactive svg,
+.sortable:hover .sort-icon.inactive path {
+    fill: #212121 !important;
+    color: #212121 !important;
+    opacity: 1 !important;
+}
+
+// Ensure icons are visible on table header
+.v-table thead th {
+    background-color: rgba(var(--v-theme-surface), 1);
+}
+
+.v-table thead th.sortable {
+    background-color: rgba(var(--v-theme-surface), 1);
+}
+
+.v-table thead th.sortable:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+// Sortable header hover effect (enhanced)
 .v-table thead th.sortable:hover,
 .v-table thead tr th.sortable:hover,
 table thead th.sortable:hover,
