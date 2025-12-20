@@ -233,7 +233,7 @@ class SaleController extends Controller
 
     public function show(Sale $sale)
     {
-        $sale->load(['customer', 'warehouse', 'items.product']);
+        $sale->load(['customer', 'warehouse', 'items.product', 'payments']);
         return response()->json($sale);
     }
 

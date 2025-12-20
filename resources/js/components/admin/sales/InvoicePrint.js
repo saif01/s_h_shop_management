@@ -28,7 +28,7 @@ export default {
                 return;
             }
 
-            // Calculate totals - following SaleDialog.vue logic
+            // Calculate totals - following ViewSaleDialog.vue logic
             const itemsDiscount = (saleData.items || []).reduce((sum, item) => sum + (parseFloat(item.discount || 0)), 0);
             const itemsTax = (saleData.items || []).reduce((sum, item) => sum + (parseFloat(item.tax || 0)), 0);
             const subtotal = parseFloat(saleData.subtotal || 0);
@@ -42,11 +42,18 @@ export default {
                 ? orderDiscount
                 : itemsDiscount;
 
-            // Backend logic: $taxAmount = $validated['tax_amount'] ?? $taxTotal;
-            // Use order tax if > 0, otherwise use items tax (not both)
-            const taxAmount = (orderTax > 0 || (orderTax === 0 && itemsTax === 0))
-                ? orderTax
-                : itemsTax;
+            // Calculate total tax - matching ViewSaleDialog.vue logic
+            // Prefer explicit order tax when it's different from item tax (backend uses order tax field for totals)
+            let calculatedTotalTax;
+            if (orderTax > 0 && Math.abs(orderTax - itemsTax) >= 0.01) {
+                calculatedTotalTax = orderTax;
+            } else {
+                // If order tax mirrors item tax, treat it as item tax to avoid mislabeling
+                calculatedTotalTax = Math.max(itemsTax, orderTax);
+            }
+
+            // Determine if order tax should be shown separately
+            const shouldShowOrderTax = orderTax > 0 && !(itemsTax > 0 && Math.abs(orderTax - itemsTax) < 0.01);
 
             // Use backend's total_amount if available (it's already calculated correctly with tax)
             // Backend formula: $totalAmount = $subtotal - $discountAmount + $taxAmount + $shipping;
@@ -54,12 +61,10 @@ export default {
             if (saleData.total_amount !== undefined && saleData.total_amount !== null) {
                 calculatedTotal = parseFloat(saleData.total_amount);
             } else {
-                // Fallback: Calculate total using the same formula as backend and SaleDialog
-                calculatedTotal = subtotal - discountAmount + taxAmount + shippingCost;
+                // Fallback: Calculate total using the same formula as backend
+                // Use calculatedTotalTax for tax amount
+                calculatedTotal = subtotal - discountAmount + calculatedTotalTax + shippingCost;
             }
-
-            // For display purposes, calculate total tax (either order tax or items tax, not both)
-            const totalTax = taxAmount;
 
             // Format date helper
             const formatDate = (dateString) => {
@@ -209,34 +214,34 @@ export default {
                             <span>Subtotal:</span>
                             <span>৳${subtotal.toFixed(2)}</span>
                         </div>
-                        ${itemsDiscount > 0 && discountAmount === itemsDiscount ? `
+                        ${itemsDiscount > 0 && (!orderDiscount || orderDiscount === 0) ? `
                         <div class="totals-row">
                             <span>Item Discounts:</span>
                             <span style="color: #f44336;">-৳${itemsDiscount.toFixed(2)}</span>
                         </div>
                         ` : ''}
-                        ${orderDiscount > 0 && discountAmount === orderDiscount ? `
+                        ${orderDiscount > 0 ? `
                         <div class="totals-row">
                             <span>Order Discount:</span>
                             <span style="color: #f44336;">-৳${orderDiscount.toFixed(2)}</span>
                         </div>
                         ` : ''}
-                        ${itemsTax > 0 && taxAmount === itemsTax ? `
+                        ${itemsTax > 0 ? `
                         <div class="totals-row">
                             <span>Item Tax:</span>
                             <span>৳${itemsTax.toFixed(2)}</span>
                         </div>
                         ` : ''}
-                        ${orderTax > 0 && taxAmount === orderTax ? `
+                        ${shouldShowOrderTax ? `
                         <div class="totals-row">
                             <span>Order Tax:</span>
                             <span>৳${orderTax.toFixed(2)}</span>
                         </div>
                         ` : ''}
-                        ${totalTax > 0 ? `
+                        ${calculatedTotalTax > 0 ? `
                         <div class="totals-row">
                             <span><strong>Total Tax:</strong></span>
-                            <span><strong>৳${totalTax.toFixed(2)}</strong></span>
+                            <span><strong>৳${calculatedTotalTax.toFixed(2)}</strong></span>
                         </div>
                         ` : ''}
                         ${shippingCost > 0 ? `

@@ -22,10 +22,9 @@
                             <v-card variant="flat" class="mb-3 search-card" elevation="1">
                                 <v-card-text class="pa-3">
                                     <v-text-field v-model="productSearch" label="Search Product (Name/SKU/Barcode)"
-                                        placeholder="Type product name, SKU, or barcode and press Enter"
                                         prepend-inner-icon="mdi-magnify" clearable autofocus variant="outlined"
                                         hide-details="auto"
-                                        hint="Search by product name, SKU, or barcode. Press Enter to search"
+                                        hint="Type product name, SKU, or barcode and press Enter to search"
                                         persistent-hint @keyup.enter="searchProducts"
                                         @click:clear="searchResults = []" />
 
@@ -79,7 +78,7 @@
                                 <v-card-title class="cart-header pa-2">
                                     <v-icon size="18" class="mr-1">mdi-cart</v-icon>
                                     <span class="text-body-2 font-weight-medium">Cart Items ({{ cartItems.length
-                                        }})</span>
+                                    }})</span>
                                 </v-card-title>
                                 <v-divider />
                                 <v-card-text class="pa-2">
@@ -145,10 +144,9 @@
                                     <!-- Customer & Warehouse -->
                                     <div class="mb-2">
                                         <v-autocomplete v-model="form.customer_id" :items="customers" item-value="id"
-                                            item-title="name" placeholder="Select or search for a customer" clearable
-                                            density="compact" variant="outlined" hide-details="auto"
-                                            :rules="[rules.required]" hint="Select the customer for this sale"
-                                            persistent-hint>
+                                            item-title="name" clearable density="compact" variant="outlined"
+                                            hide-details="auto" :rules="[rules.required]"
+                                            hint="Select or search for a customer" persistent-hint>
                                             <template #prepend-inner>
                                                 <v-icon size="18">mdi-account</v-icon>
                                             </template>
@@ -161,9 +159,9 @@
 
                                     <div class="mb-2">
                                         <v-select v-model="form.warehouse_id" :items="warehouses" item-value="id"
-                                            item-title="name" placeholder="Select warehouse" density="compact"
-                                            variant="outlined" hide-details="auto" :rules="[rules.required]"
-                                            hint="Select the warehouse for this sale" persistent-hint>
+                                            item-title="name" density="compact" variant="outlined" hide-details="auto"
+                                            :rules="[rules.required]" hint="Select the warehouse for this sale"
+                                            persistent-hint>
                                             <template #prepend-inner>
                                                 <v-icon size="18">mdi-warehouse</v-icon>
                                             </template>
@@ -172,6 +170,28 @@
                                                     style="font-size: 1.2em; font-weight: bold;">*</span>
                                             </template>
                                         </v-select>
+                                    </div>
+
+                                    <!-- Invoice Number (Read-only when editing) -->
+                                    <div v-if="isEdit && form.invoice_number" class="mb-2">
+                                        <v-text-field :model-value="form.invoice_number" label="Invoice Number"
+                                            density="compact" variant="outlined" readonly hide-details="auto"
+                                            hint="Invoice number (auto-generated)" persistent-hint>
+                                            <template #prepend-inner>
+                                                <v-icon size="18">mdi-receipt</v-icon>
+                                            </template>
+                                        </v-text-field>
+                                    </div>
+
+                                    <!-- Status (Read-only when editing) -->
+                                    <div v-if="isEdit && form.status" class="mb-2">
+                                        <v-text-field :model-value="getStatusLabel(form.status)" label="Status"
+                                            density="compact" variant="outlined" readonly hide-details="auto"
+                                            hint="Current sale status" persistent-hint>
+                                            <template #prepend-inner>
+                                                <v-icon size="18">mdi-information</v-icon>
+                                            </template>
+                                        </v-text-field>
                                     </div>
 
                                     <!-- Dates -->
@@ -203,14 +223,14 @@
                                         <div class="d-flex justify-space-between mb-1">
                                             <span class="text-caption text-grey">Subtotal:</span>
                                             <span class="text-body-2 font-weight-medium">৳{{ form.subtotal.toFixed(2)
-                                                }}</span>
+                                            }}</span>
                                         </div>
 
                                         <div v-if="calculatedItemsDiscount > 0"
                                             class="d-flex justify-space-between mb-1">
                                             <span class="text-caption text-grey">Item Discounts:</span>
                                             <span class="text-body-2 text-error">-৳{{ calculatedItemsDiscount.toFixed(2)
-                                            }}</span>
+                                                }}</span>
                                         </div>
 
                                         <div class="d-flex justify-space-between mb-1">
@@ -222,22 +242,9 @@
                                         </div>
 
                                         <div v-if="calculatedItemsTax > 0" class="d-flex justify-space-between mb-1">
-                                            <span class="text-caption text-grey">Item Tax:</span>
-                                            <span class="text-body-2">৳{{ calculatedItemsTax.toFixed(2) }}</span>
-                                        </div>
-
-                                        <div class="d-flex justify-space-between mb-1">
-                                            <span class="text-caption text-grey">Order Tax:</span>
-                                            <v-text-field v-model.number="form.tax_amount" type="number"
-                                                density="compact" variant="outlined" hide-details min="0" step="0.01"
-                                                class="compact-input"
-                                                @update:model-value="() => { taxAmountManuallySet = true; calculateTotals(); }" />
-                                        </div>
-
-                                        <div v-if="calculatedTotalTax > 0" class="d-flex justify-space-between mb-1">
                                             <span class="text-caption text-grey font-weight-medium">Total Tax:</span>
                                             <span class="text-body-2 font-weight-medium">৳{{
-                                                calculatedTotalTax.toFixed(2) }}</span>
+                                                calculatedItemsTax.toFixed(2) }}</span>
                                         </div>
 
                                         <div class="d-flex justify-space-between mb-2">
@@ -257,11 +264,10 @@
 
                                         <div class="mb-2">
                                             <v-text-field v-model.number="form.paid_amount" type="number"
-                                                label="Paid Amount" placeholder="Enter paid amount (e.g., 1000.00)"
-                                                density="compact" variant="outlined" min="0" step="0.01"
-                                                prepend-inner-icon="mdi-cash" hide-details="auto"
-                                                hint="Enter the amount paid by the customer" persistent-hint
-                                                @update:model-value="calculateBalance" />
+                                                label="Paid Amount" density="compact" variant="outlined" min="0"
+                                                step="0.01" prepend-inner-icon="mdi-cash" hide-details="auto"
+                                                hint="Enter the amount paid by the customer (e.g., 1000.00)"
+                                                persistent-hint @update:model-value="calculateBalance" />
                                         </div>
 
                                         <div class="mb-2">
@@ -273,19 +279,19 @@
 
                                         <div v-if="form.paid_amount > 0" class="mb-2">
                                             <v-select v-model="paymentMethod" :items="paymentMethods"
-                                                label="Payment Method" placeholder="Select payment method"
-                                                density="compact" variant="outlined" hide-details="auto"
-                                                hint="Select how the customer paid" persistent-hint />
+                                                label="Payment Method" density="compact" variant="outlined"
+                                                hide-details="auto" hint="Select how the customer paid"
+                                                persistent-hint />
                                         </div>
                                     </div>
 
                                     <v-divider class="my-2" />
 
                                     <!-- Notes -->
-                                    <v-textarea v-model="form.notes" label="Notes"
-                                        placeholder="Enter any additional notes about this sale (optional)" rows="2"
-                                        density="compact" variant="outlined" hide-details="auto"
-                                        hint="Optional: Additional notes or comments about this sale" persistent-hint />
+                                    <v-textarea v-model="form.notes" label="Notes" rows="2" density="compact"
+                                        variant="outlined" hide-details="auto"
+                                        hint="Optional: Enter any additional notes or comments about this sale"
+                                        persistent-hint />
                                 </v-card-text>
                             </v-card>
                         </v-col>
@@ -348,9 +354,8 @@ export default {
             rules: {
                 required: v => !!v || 'Required',
             },
-            // Track if discount_amount and tax_amount were manually edited
+            // Track if discount_amount was manually edited
             discountAmountManuallySet: false,
-            taxAmountManuallySet: false,
         };
     },
     computed: {
@@ -364,13 +369,8 @@ export default {
             return this.cartItems.reduce((sum, item) => sum + (item.tax || 0), 0);
         },
         calculatedTotalTax() {
-            const itemsTax = this.calculatedItemsTax;
-            const orderTax = parseFloat(this.form.tax_amount) || 0;
-            // Use order tax if manually set or > 0, otherwise use items tax only
-            const finalOrderTax = (this.form.tax_amount > 0 || this.taxAmountManuallySet || (this.form.tax_amount === 0 && itemsTax === 0))
-                ? orderTax
-                : 0;
-            return itemsTax + finalOrderTax;
+            // Only use item tax since order tax input is removed
+            return this.calculatedItemsTax;
         },
     },
     watch: {
@@ -383,7 +383,6 @@ export default {
                     this.form = this.getEmptyForm();
                     this.cartItems = [];
                     this.discountAmountManuallySet = false;
-                    this.taxAmountManuallySet = false;
                 }
             },
         },
@@ -395,13 +394,11 @@ export default {
                     this.form = this.getEmptyForm();
                     this.cartItems = [];
                     this.discountAmountManuallySet = false;
-                    this.taxAmountManuallySet = false;
                 }
             } else {
                 this.form = this.getEmptyForm();
                 this.cartItems = [];
                 this.discountAmountManuallySet = false;
-                this.taxAmountManuallySet = false;
             }
         },
     },
@@ -409,10 +406,12 @@ export default {
         getEmptyForm() {
             return {
                 id: null,
+                invoice_number: null,
                 customer_id: null,
                 warehouse_id: null,
                 invoice_date: new Date().toISOString().split('T')[0],
                 due_date: null,
+                status: 'draft',
                 subtotal: 0,
                 tax_amount: 0,
                 discount_amount: 0,
@@ -498,6 +497,7 @@ export default {
                     tax_rate: taxRate,
                     tax: 0, // Will be calculated in updateCartItem
                     total: 0, // Will be calculated in updateCartItem
+                    notes: '',
                 });
                 // Calculate tax and total for the new item
                 this.updateCartItem(this.cartItems.length - 1);
@@ -565,9 +565,8 @@ export default {
                 ? parseFloat(this.form.discount_amount)
                 : itemsDiscount;
 
-            const taxAmount = (this.form.tax_amount > 0 || (this.form.tax_amount === 0 && itemsTax === 0))
-                ? parseFloat(this.form.tax_amount)
-                : itemsTax;
+            // Use items tax only (order tax input has been removed)
+            const taxAmount = itemsTax;
 
             // Calculate total: subtotal - discount + tax + shipping
             // This matches backend: $totalAmount = $subtotal - $discountAmount + $taxAmount + $shipping;
@@ -583,6 +582,16 @@ export default {
             this.form.balance_amount = parseFloat(
                 (this.form.total_amount - (this.form.paid_amount || 0)).toFixed(2)
             );
+        },
+        getStatusLabel(status) {
+            const labels = {
+                draft: 'Draft',
+                pending: 'Pending',
+                partial: 'Partial',
+                paid: 'Paid',
+                cancelled: 'Cancelled',
+            };
+            return labels[status] || status;
         },
         async loadSaleForEdit(saleId) {
             if (!saleId) return;
@@ -600,10 +609,12 @@ export default {
 
                 this.form = {
                     id: sale.id,
+                    invoice_number: sale.invoice_number || null,
                     customer_id: sale.customer_id,
                     warehouse_id: sale.warehouse_id,
                     invoice_date: sale.invoice_date ? (sale.invoice_date.includes('T') ? sale.invoice_date.split('T')[0] : sale.invoice_date) : new Date().toISOString().split('T')[0],
                     due_date: sale.due_date ? (sale.due_date.includes('T') ? sale.due_date.split('T')[0] : sale.due_date) : null,
+                    status: sale.status || 'draft',
                     subtotal: parseFloat(sale.subtotal || 0),
                     tax_amount: parseFloat(sale.tax_amount || 0),
                     discount_amount: parseFloat(sale.discount_amount || 0),
@@ -614,9 +625,17 @@ export default {
                     notes: sale.notes || '',
                 };
 
-                // When loading existing sale, these values were explicitly set, so mark as manually set
+                // Load payment_method from payments if available
+                if (sale.payments && Array.isArray(sale.payments) && sale.payments.length > 0) {
+                    // Get the first payment's payment_method
+                    const firstPayment = sale.payments.find(p => p.payment_method) || sale.payments[0];
+                    if (firstPayment && firstPayment.payment_method) {
+                        this.paymentMethod = firstPayment.payment_method;
+                    }
+                }
+
+                // When loading existing sale, discount_amount was explicitly set, so mark as manually set
                 this.discountAmountManuallySet = true;
-                this.taxAmountManuallySet = true;
 
                 if (sale.items && Array.isArray(sale.items) && sale.items.length > 0) {
                     this.cartItems = sale.items.map(item => {
@@ -647,6 +666,7 @@ export default {
                             tax_rate: taxRate,
                             tax: tax,
                             total: total,
+                            notes: item.notes || '',
                         };
                     });
                 } else {
@@ -759,17 +779,18 @@ export default {
                 }
                 // Otherwise (default 0 with item discounts), don't send - backend will calculate from items
 
-                const taxAmount = parseFloat(this.form.tax_amount) || 0;
-                if (taxAmount > 0 || this.taxAmountManuallySet || (taxAmount === 0 && itemsTax === 0)) {
-                    // Send if positive, manually set, or explicit zero when no item taxes
-                    payload.tax_amount = taxAmount;
-                }
-                // Otherwise (default 0 with item taxes), don't send - backend will calculate from items
+                // Don't send tax_amount - backend will calculate from items only
+                // (Order tax input field has been removed)
 
-                // Add status if provided (for draft) - ensure it's a string
+                // Handle status: use provided status, or preserve existing status when editing, or calculate automatically
                 if (status && typeof status === 'string') {
+                    // Explicit status provided (e.g., 'draft' from saveAsDraft)
                     payload.status = String(status);
+                } else if (this.isEdit && this.form.status) {
+                    // When editing, preserve existing status unless explicitly changed
+                    payload.status = String(this.form.status);
                 }
+                // Otherwise, backend will calculate status automatically based on balance
 
                 console.log('Saving sale with payload:', JSON.stringify(payload, null, 2));
 
@@ -820,7 +841,6 @@ export default {
             this.cartItems = [];
             this.searchResults = [];
             this.discountAmountManuallySet = false;
-            this.taxAmountManuallySet = false;
         },
     },
 };
