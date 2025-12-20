@@ -35,26 +35,39 @@
                         <!-- Basic Information Tab -->
                         <v-window-item value="basic">
                             <div class="pa-6">
-                                <v-text-field v-model="form.name" label="Full Name"
-                                    placeholder="Enter full name (e.g., John Doe)" variant="outlined"
-                                    density="comfortable" :rules="[validationRules.required]" required
-                                    prepend-inner-icon="mdi-account"
+                                <v-text-field v-model="form.name" placeholder="Enter full name (e.g., John Doe)"
+                                    variant="outlined" density="comfortable" :rules="[validationRules.required]"
+                                    required prepend-inner-icon="mdi-account"
                                     hint="Enter the user's full name as it should appear in the system" persistent-hint
-                                    hide-details="auto" class="mb-4" />
+                                    hide-details="auto" class="mb-4">
+                                    <template #label>
+                                        Full Name <span class="text-error"
+                                            style="font-size: 1.2em; font-weight: bold;">*</span>
+                                    </template>
+                                </v-text-field>
 
-                                <v-text-field v-model="form.email" label="Email" type="email"
+                                <v-text-field v-model="form.email" type="email"
                                     placeholder="Enter email address (e.g., user@example.com)" variant="outlined"
                                     density="comfortable" :rules="[validationRules.required, validationRules.email]"
                                     required prepend-inner-icon="mdi-email"
                                     hint="Enter a valid email address. This will be used for login and notifications"
-                                    persistent-hint hide-details="auto" class="mb-4" />
+                                    persistent-hint hide-details="auto" class="mb-4">
+                                    <template #label>
+                                        Email <span class="text-error"
+                                            style="font-size: 1.2em; font-weight: bold;">*</span>
+                                    </template>
+                                </v-text-field>
 
                                 <v-select v-model="form.role_ids" :items="roles" item-title="label" item-value="value"
-                                    label="Roles" placeholder="Select one or more roles" variant="outlined"
-                                    density="comfortable" :rules="[validationRules.required]" required multiple chips
+                                    placeholder="Select one or more roles" variant="outlined" density="comfortable"
+                                    :rules="[validationRules.required]" required multiple chips
                                     prepend-inner-icon="mdi-account-group"
                                     hint="Select at least one role to define user permissions. You can select multiple roles"
                                     persistent-hint hide-details="auto" class="mb-4">
+                                    <template #label>
+                                        Roles <span class="text-error"
+                                            style="font-size: 1.2em; font-weight: bold;">*</span>
+                                    </template>
                                     <template #item="{ props, item }">
                                         <v-list-item v-bind="props">
                                             <template #title>
@@ -185,13 +198,17 @@
                         <!-- Security Tab -->
                         <v-window-item value="security">
                             <div class="pa-6">
-                                <v-text-field v-model="form.password" label="Password"
+                                <v-text-field v-model="form.password"
                                     :placeholder="isEditing ? 'Enter new password (leave blank to keep current)' : 'Enter password (minimum 8 characters)'"
                                     variant="outlined" density="comfortable" :type="showPassword ? 'text' : 'password'"
                                     :rules="passwordRules" :required="!isEditing"
                                     :hint="isEditing ? 'Leave blank to keep current password. If changing, enter a new password with at least 8 characters' : 'Password must be at least 8 characters long'"
                                     :persistent-hint="true" prepend-inner-icon="mdi-lock" hide-details="auto"
                                     class="mb-4">
+                                    <template #label>
+                                        Password <span v-if="!isEditing" class="text-error"
+                                            style="font-size: 1.2em; font-weight: bold;">*</span>
+                                    </template>
                                     <template #append-inner>
                                         <v-btn icon variant="text" size="small" @click="showPassword = !showPassword">
                                             <v-icon>
@@ -202,13 +219,16 @@
                                 </v-text-field>
 
                                 <v-text-field v-if="shouldShowPasswordConfirmation" v-model="form.password_confirmation"
-                                    label="Confirm Password" placeholder="Re-enter the password to confirm"
-                                    variant="outlined" density="comfortable"
-                                    :type="showPasswordConfirmation ? 'text' : 'password'"
+                                    placeholder="Re-enter the password to confirm" variant="outlined"
+                                    density="comfortable" :type="showPasswordConfirmation ? 'text' : 'password'"
                                     :rules="passwordConfirmationRules" :required="!!form.password"
                                     prepend-inner-icon="mdi-lock-check"
                                     hint="Re-enter the password to confirm it matches" persistent-hint
                                     hide-details="auto">
+                                    <template #label>
+                                        Confirm Password <span v-if="form.password" class="text-error"
+                                            style="font-size: 1.2em; font-weight: bold;">*</span>
+                                    </template>
                                     <template #append-inner>
                                         <v-btn icon variant="text" size="small"
                                             @click="showPasswordConfirmation = !showPasswordConfirmation">
