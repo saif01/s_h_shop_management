@@ -10,7 +10,7 @@ class SupplierController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Supplier::query();
+        $query = Supplier::with(['createdBy', 'updatedBy']);
 
         // Filter by active status
         if ($request->has('is_active')) {
@@ -73,12 +73,14 @@ class SupplierController extends Controller
         $validated['created_by'] = auth()->id();
 
         $supplier = Supplier::create($validated);
+        $supplier->load(['createdBy', 'updatedBy']);
         
         return response()->json($supplier, 201);
     }
 
     public function show(Supplier $supplier)
     {
+        $supplier->load(['createdBy', 'updatedBy']);
         return response()->json($supplier);
     }
 
@@ -106,6 +108,7 @@ class SupplierController extends Controller
         $validated['updated_by'] = auth()->id();
 
         $supplier->update($validated);
+        $supplier->load(['createdBy', 'updatedBy']);
         
         return response()->json($supplier);
     }

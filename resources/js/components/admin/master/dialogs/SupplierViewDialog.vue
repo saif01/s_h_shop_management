@@ -9,6 +9,7 @@
                     <v-tab value="basic">Basic Information</v-tab>
                     <v-tab value="contact">Contact Details</v-tab>
                     <v-tab value="financial">Financial</v-tab>
+                    <v-tab value="audit">System Information</v-tab>
                 </v-tabs>
 
                 <v-window v-model="activeTab">
@@ -149,6 +150,45 @@
                             </div>
                         </div>
                     </v-window-item>
+
+                    <!-- System Information Tab -->
+                    <v-window-item value="audit">
+                        <div class="pa-4">
+                            <v-row>
+                                <v-col cols="12" md="6">
+                                    <div class="mb-4">
+                                        <strong class="text-grey-darken-1">Created By:</strong>
+                                        <div class="mt-1">
+                                            {{ supplier.created_by?.name || supplier.created_by?.email || '-' }}
+                                        </div>
+                                    </div>
+                                </v-col>
+                                <v-col cols="12" md="6">
+                                    <div class="mb-4">
+                                        <strong class="text-grey-darken-1">Created At:</strong>
+                                        <div class="mt-1">{{ formatDateShort(supplier.created_at) }}</div>
+                                    </div>
+                                </v-col>
+                            </v-row>
+
+                            <v-row>
+                                <v-col cols="12" md="6">
+                                    <div class="mb-4">
+                                        <strong class="text-grey-darken-1">Updated By:</strong>
+                                        <div class="mt-1">
+                                            {{ supplier.updated_by?.name || supplier.updated_by?.email || '-' }}
+                                        </div>
+                                    </div>
+                                </v-col>
+                                <v-col cols="12" md="6">
+                                    <div class="mb-4">
+                                        <strong class="text-grey-darken-1">Updated At:</strong>
+                                        <div class="mt-1">{{ formatDateShort(supplier.updated_at) }}</div>
+                                    </div>
+                                </v-col>
+                            </v-row>
+                        </div>
+                    </v-window-item>
                 </v-window>
             </v-card-text>
             <v-card-actions>
@@ -160,8 +200,11 @@
 </template>
 
 <script>
+import commonMixin from '../../../../mixins/commonMixin';
+
 export default {
     name: 'SupplierViewDialog',
+    mixins: [commonMixin],
     props: {
         modelValue: {
             type: Boolean,

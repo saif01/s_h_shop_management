@@ -10,7 +10,7 @@ class CustomerController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Customer::query();
+        $query = Customer::with(['createdBy', 'updatedBy']);
 
         // Filter by active status
         if ($request->has('is_active')) {
@@ -73,12 +73,14 @@ class CustomerController extends Controller
         $validated['created_by'] = auth()->id();
 
         $customer = Customer::create($validated);
+        $customer->load(['createdBy', 'updatedBy']);
         
         return response()->json($customer, 201);
     }
 
     public function show(Customer $customer)
     {
+        $customer->load(['createdBy', 'updatedBy']);
         return response()->json($customer);
     }
 
@@ -106,6 +108,7 @@ class CustomerController extends Controller
         $validated['updated_by'] = auth()->id();
 
         $customer->update($validated);
+        $customer->load(['createdBy', 'updatedBy']);
         
         return response()->json($customer);
     }

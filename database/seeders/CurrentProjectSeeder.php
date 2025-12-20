@@ -16,7 +16,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
-class InventorySeeder extends Seeder
+class CurrentProjectSeeder extends Seeder
 {
     /**
      * Seed a minimal shop setup: units, categories, warehouse, sample products, stock, suppliers/customers, one sale.
