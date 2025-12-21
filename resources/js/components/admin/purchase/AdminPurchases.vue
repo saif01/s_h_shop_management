@@ -17,14 +17,14 @@
                             @update:model-value="loadPurchases"></v-select>
                     </v-col>
                     <v-col cols="12" md="3">
-                        <v-select v-model="supplierFilter" :items="supplierOptions" label="Filter by Supplier"
-                            variant="outlined" density="compact" clearable
-                            @update:model-value="loadPurchases"></v-select>
+                        <v-select v-model="supplierFilter" :items="supplierOptions" item-title="label"
+                            item-value="value" label="Filter by Supplier" variant="outlined" density="compact"
+                            clearable @update:model-value="loadPurchases"></v-select>
                     </v-col>
                     <v-col cols="12" md="3">
-                        <v-select v-model="warehouseFilter" :items="warehouseOptions" label="Filter by Warehouse"
-                            variant="outlined" density="compact" clearable
-                            @update:model-value="loadPurchases"></v-select>
+                        <v-select v-model="warehouseFilter" :items="warehouseOptions" item-title="label"
+                            item-value="value" label="Filter by Warehouse" variant="outlined" density="compact"
+                            clearable @update:model-value="loadPurchases"></v-select>
                     </v-col>
                     <v-col cols="12" md="3">
                         <v-text-field v-model="search" label="Search by invoice number" prepend-inner-icon="mdi-magnify"
@@ -330,7 +330,7 @@ export default {
                     params: { per_page: 1000, is_active: true },
                     headers: this.getAuthHeaders()
                 });
-                
+
                 // Handle paginated response structure
                 let productsList = [];
                 if (response.data) {
@@ -341,7 +341,7 @@ export default {
                         productsList = response.data;
                     }
                 }
-                
+
                 // If no active products found, try loading all products
                 if (productsList.length === 0) {
                     console.log('No active products found, loading all products...');
@@ -349,7 +349,7 @@ export default {
                         params: { per_page: 1000 },
                         headers: this.getAuthHeaders()
                     });
-                    
+
                     if (response.data) {
                         if (response.data.data && Array.isArray(response.data.data)) {
                             productsList = response.data.data;
@@ -358,12 +358,12 @@ export default {
                         }
                     }
                 }
-                
+
                 console.log('Products API response:', {
                     total: productsList.length,
                     sample: productsList.length > 0 ? productsList[0] : null
                 });
-                
+
                 this.products = productsList;
                 this.productOptions = productsList
                     .filter(p => {
@@ -374,9 +374,9 @@ export default {
                         label: p.sku ? `${p.name || 'Unnamed Product'} (${p.sku})` : (p.name || `Product #${p.id}`),
                         value: p.id
                     }));
-                
+
                 console.log('Products loaded:', this.productOptions.length, 'options');
-                
+
                 if (this.productOptions.length === 0 && productsList.length > 0) {
                     console.warn('Products were loaded but none passed validation. Sample product:', productsList[0]);
                 } else if (this.productOptions.length === 0) {
@@ -460,7 +460,20 @@ export default {
             }
         },
         async deletePurchase(purchase) {
-            if (!confirm(`Delete purchase ${purchase.invoice_number}?`)) {
+            // Show SweetAlert confirmation
+            const result = await window.Swal.fire({
+                title: 'Delete Purchase Invoice?',
+                text: `Are you sure you want to delete purchase invoice "${purchase.invoice_number}"? This action cannot be undone.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true
+            });
+
+            if (!result.isConfirmed) {
                 return;
             }
 
