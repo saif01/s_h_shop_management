@@ -133,13 +133,13 @@ class StockReportController extends Controller
             ->leftJoin('warehouses', 'stocks.warehouse_id', '=', 'warehouses.id');
 
         // Apply filters
-        if ($request->warehouse_id) {
+        if ($request->filled('warehouse_id')) {
             $query->where('stocks.warehouse_id', $request->warehouse_id);
         }
-        if ($request->category_id) {
+        if ($request->filled('category_id')) {
             $query->where('products.category_id', $request->category_id);
         }
-        if ($request->low_stock_only) {
+        if ($request->boolean('low_stock_only')) {
             $query->whereColumn('stocks.quantity', '<=', 'products.minimum_stock_level');
         }
 
@@ -148,15 +148,20 @@ class StockReportController extends Controller
 
         // Calculate summary
         $totalStockValue = $allStock->sum(function ($item) {
-            return $item->quantity * $item->purchase_price;
+            $quantity = $item->quantity ?? 0;
+            $purchasePrice = $item->purchase_price ?? 0;
+            return $quantity * $purchasePrice;
         });
 
         $lowStockCount = $allStock->filter(function ($item) {
-            return $item->quantity > 0 && $item->quantity <= $item->minimum_stock_level;
+            $quantity = $item->quantity ?? 0;
+            $minLevel = $item->minimum_stock_level ?? 0;
+            return $quantity > 0 && $minLevel > 0 && $quantity <= $minLevel;
         })->count();
 
         $outOfStockCount = $allStock->filter(function ($item) {
-            return $item->quantity == 0;
+            $quantity = $item->quantity ?? 0;
+            return $quantity == 0;
         })->count();
 
         $summary = [

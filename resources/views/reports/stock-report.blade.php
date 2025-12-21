@@ -81,10 +81,13 @@
         <tbody>
             @foreach($stock as $item)
             @php
+                $quantity = $item->quantity ?? 0;
+                $purchasePrice = $item->purchase_price ?? 0;
+                $minLevel = $item->minimum_stock_level ?? 0;
                 $status = 'ok';
-                if ($item->quantity == 0) {
+                if ($quantity == 0) {
                     $status = 'out';
-                } elseif ($item->quantity <= $item->minimum_stock_level) {
+                } elseif ($minLevel > 0 && $quantity <= $minLevel) {
                     $status = 'low';
                 }
             @endphp
@@ -93,9 +96,9 @@
                 <td>{{ $item->sku ?? 'N/A' }}</td>
                 <td>{{ $item->category_name ?? 'N/A' }}</td>
                 <td>{{ $item->warehouse_name ?? 'N/A' }}</td>
-                <td class="text-right">{{ number_format($item->quantity) }}</td>
-                <td class="text-right">{{ number_format($item->minimum_stock_level) }}</td>
-                <td class="text-right">Tk {{ number_format($item->quantity * $item->purchase_price, 2) }}</td>
+                <td class="text-right">{{ number_format($quantity) }}</td>
+                <td class="text-right">{{ number_format($minLevel) }}</td>
+                <td class="text-right">Tk {{ number_format($quantity * $purchasePrice, 2) }}</td>
                 <td>
                     <span class="status-badge status-{{ $status }}">
                         @if($status == 'out') Out of Stock

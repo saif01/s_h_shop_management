@@ -25,7 +25,7 @@ A comprehensive shop management web application built with Laravel and Vue.js. T
 - **Intervention Image**: ^3.11 - Image manipulation library
 - **Intervention Image Laravel**: ^1.5 - Laravel integration for image processing
 - **Barryvdh Laravel Snappy**: ^1.0 - PDF generation from HTML
-- **Barryvdh Laravel DomPDF**: ^3.1 - PDF generation for reports (implemented for sales reports)
+- **Barryvdh Laravel DomPDF**: ^3.1 - PDF generation for reports (✅ fully implemented for all report types)
 
 #### Data Export & Import
 - **Maatwebsite Excel**: ^3.1 - Excel file import/export functionality
@@ -466,8 +466,8 @@ npm run build
 
 ### 3) Reports & Analytics ✅
 
-#### G) Comprehensive Reporting System
-All reports include filtering, summary cards, and export options (Excel & PDF).
+#### G) Comprehensive Reporting System ✅
+All reports include filtering, summary cards, pagination, sorting, and export options (Excel & PDF).
 
 **Sales Reports:** ✅
 - Date range filtering (from/to dates)
@@ -476,43 +476,68 @@ All reports include filtering, summary cards, and export options (Excel & PDF).
 - Summary metrics: total sales, total paid, total due, invoice count
 - Top selling products (top 10 with quantity and revenue)
 - **PDF Export**: ✅ Fully implemented with DomPDF
-  - Professional PDF layout with summary cards
+  - Compact, standardized PDF layout with summary cards
   - Complete sales data table with all columns
   - Top selling products section
   - Applied filters display
   - Currency formatting (Tk symbol)
   - Landscape A4 format
-  - Downloadable PDF with timestamped filename
 - Excel export (ready for implementation)
 
-**Purchase Reports:**
+**Purchase Reports:** ✅
 - Date range filtering
 - Supplier-wise purchase analysis
 - Status filtering
 - Summary metrics: total purchases, paid, due, order count
-- Export functionality
+- **PDF Export**: ✅ Fully implemented with DomPDF
+  - Compact, standardized PDF layout
+  - Complete purchase data table
+  - Applied filters display
+  - Landscape A4 format
+- Excel export (ready for implementation)
 
-**Stock Reports:**
+**Stock Reports:** ✅
 - Current stock levels by warehouse
 - Low stock items report
 - Stock valuation report
 - Category-wise filtering
+- Warehouse filtering
 - Out of stock alerts
 - Stock summary: total products, stock value, low stock count
+- **PDF Export**: ✅ Fully implemented with DomPDF
+  - Compact, standardized PDF layout
+  - Complete stock data table with status indicators
+  - Applied filters display
+  - Landscape A4 format
+- Excel export (ready for implementation)
 
-**Due Reports:**
+**Due Reports:** ✅
 - Customer due tracking
 - Supplier due tracking
 - Overdue highlighting (past due date)
 - Payment collection interface
 - Summary: total due, overdue amount, parties with dues
+- **PDF Export**: ✅ Fully implemented with DomPDF
+  - Compact, standardized PDF layout
+  - Supports both customer and supplier due reports
+  - Overdue highlighting
+  - Applied filters display
+  - Landscape A4 format
+- Excel export (ready for implementation)
 
-**Profit Reports:**
+**Profit Reports:** ✅
 - Revenue vs Cost analysis
 - Gross profit calculation: (Sale price - Purchase price) × qty - discounts
 - Profit margin percentage
 - Multiple grouping: daily, weekly, monthly, by product, by category
 - Visual profit trends
+- **PDF Export**: ✅ Fully implemented with DomPDF
+  - Compact, standardized PDF layout
+  - Supports all grouping options (daily, weekly, monthly, product, category)
+  - Profit indicators with color coding
+  - Applied filters display
+  - Landscape A4 format
+- Excel export (ready for implementation)
 
 ### 4) Dashboard (Owner Dashboard) ✅
 
@@ -529,7 +554,7 @@ All reports include filtering, summary cards, and export options (Excel & PDF).
 #### Non-Functional Requirements
 - **Responsive UI**: Desktop and mobile optimized with Vuetify
 - **Fast Product Search**: Real-time search in POS (critical for quick sales)
-- **Data Backup/Export**: PDF export implemented for sales reports, Excel export ready for implementation
+- **Data Backup/Export**: ✅ PDF export fully implemented for all report types (Sales, Purchase, Stock, Due, Profit), Excel export ready for implementation
 - **Audit Trail**: Track critical actions like price changes, stock edits (optional)
 - **Multi-language Support**: Bangla/English support (optional, ready for implementation)
 - **Secure Authentication**: Laravel Sanctum token-based authentication
@@ -544,7 +569,7 @@ This application follows the exact tech stack recommended in the PDF:
 - **Laravel Sanctum**: API authentication for admin panel
 - **PostgreSQL/MySQL**: Database (SQLite supported for development)
 - **Maatwebsite Excel**: Excel export functionality (ready for implementation)
-- **Barryvdh DomPDF**: ✅ PDF generation for reports and invoices (implemented for sales reports)
+- **Barryvdh DomPDF**: ✅ PDF generation for reports and invoices (fully implemented for all report types)
 
 #### Frontend
 - **Vue 3**: Progressive JavaScript framework
@@ -872,18 +897,44 @@ All admin endpoints require authentication via Bearer token and appropriate perm
   - Applies same filters as main report
   - Includes summary, sales table, and top products
   - Landscape A4 format with professional layout
-- `GET /api/v1/reports/purchases` - Purchase report (requires `view-reports`)
-- `GET /api/v1/reports/purchases/export/excel` - Export purchases to Excel (requires `view-reports`)
-- `GET /api/v1/reports/purchases/export/pdf` - Export purchases to PDF (requires `view-reports`)
-- `GET /api/v1/reports/stock` - Stock report (requires `view-reports`)
-- `GET /api/v1/reports/stock/export/excel` - Export stock to Excel (requires `view-reports`)
-- `GET /api/v1/reports/stock/export/pdf` - Export stock to PDF (requires `view-reports`)
-- `GET /api/v1/reports/due` - Due report (requires `view-reports`)
-- `GET /api/v1/reports/due/export/excel` - Export due to Excel (requires `view-reports`)
-- `GET /api/v1/reports/due/export/pdf` - Export due to PDF (requires `view-reports`)
-- `GET /api/v1/reports/profit` - Profit report (requires `view-reports`)
-- `GET /api/v1/reports/profit/export/excel` - Export profit to Excel (requires `view-reports`)
-- `GET /api/v1/reports/profit/export/pdf` - Export profit to PDF (requires `view-reports`)
+- `GET /api/v1/reports/purchases` - Purchase report with filters (requires `view-reports`)
+  - Supports pagination, sorting, and filtering (date range, supplier, status)
+  - Returns summary metrics
+- `GET /api/v1/reports/purchases/export/excel` - Export purchases to Excel (requires `export-reports`) - Ready for implementation
+- `GET /api/v1/reports/purchases/export/pdf` - ✅ Export purchases to PDF (requires `export-reports`)
+  - Returns downloadable PDF file with all purchase data
+  - Applies same filters as main report
+  - Includes summary and purchase table
+  - Compact landscape A4 format
+- `GET /api/v1/reports/stock` - Stock report with filters (requires `view-reports`)
+  - Supports pagination, sorting, and filtering (warehouse, category, low stock only)
+  - Returns summary metrics
+- `GET /api/v1/reports/stock/export/excel` - Export stock to Excel (requires `export-reports`) - Ready for implementation
+- `GET /api/v1/reports/stock/export/pdf` - ✅ Export stock to PDF (requires `export-reports`)
+  - Returns downloadable PDF file with all stock data
+  - Applies same filters as main report
+  - Includes summary and stock table with status indicators
+  - Compact landscape A4 format
+- `GET /api/v1/reports/due` - Due report with filters (requires `view-reports`)
+  - Supports pagination, sorting, and filtering (party type, party ID, overdue only)
+  - Returns summary metrics
+- `GET /api/v1/reports/due/export/excel` - Export due to Excel (requires `export-reports`) - Ready for implementation
+- `GET /api/v1/reports/due/export/pdf` - ✅ Export due to PDF (requires `export-reports`)
+  - Returns downloadable PDF file with all due records
+  - Supports both customer and supplier due reports
+  - Applies same filters as main report
+  - Includes summary and due table with overdue highlighting
+  - Compact landscape A4 format
+- `GET /api/v1/reports/profit` - Profit report with filters (requires `view-reports`)
+  - Supports pagination, sorting, and filtering (date range, category, grouping)
+  - Returns summary metrics and chart data
+- `GET /api/v1/reports/profit/export/excel` - Export profit to Excel (requires `export-reports`) - Ready for implementation
+- `GET /api/v1/reports/profit/export/pdf` - ✅ Export profit to PDF (requires `export-reports`)
+  - Returns downloadable PDF file with all profit data
+  - Supports all grouping options (daily, weekly, monthly, product, category)
+  - Applies same filters as main report
+  - Includes summary and profit table with profit indicators
+  - Compact landscape A4 format
 
 **Dashboard:**
 - `GET /api/v1/dashboard` - Get dashboard metrics (requires `access-dashboard`)
@@ -1044,14 +1095,13 @@ public/
 - **Well-Structured**: Clear separation of concerns with Laravel MVC + Vue SPA
 - **Secure**: Laravel Sanctum authentication with role-based access control
 - **Modern Stack**: Laravel 12 + Vue 3 + Vuetify 3 for best developer experience
-- **Export Ready**: PDF export implemented for sales reports, Excel export ready for implementation
+- **Export Ready**: ✅ PDF export fully implemented for all report types with compact, standardized design, Excel export ready for implementation
 - **Multi-Warehouse**: Built-in support for multiple warehouse locations
 - **Real-time Calculations**: Automatic tax, discount, and total calculations in POS
 - **Comprehensive Reports**: 5 report types with filtering and summary metrics
 
 ### Optional Features (Ready for Implementation)
 - Excel export functionality for reports (packages installed, routes ready)
-- PDF export for other reports (Purchase, Stock, Due, Profit) - DomPDF installed and ready
 - Invoice printing templates
 - Sales/Purchase return processing
 - Barcode generation and printing
@@ -1126,27 +1176,45 @@ public/
   - **View Dialog**: Detailed log information display with user relationship
   - **Delete Functionality**: Delete individual login logs with confirmation
   - **Date Formatting**: Consistent date-time format (DD/MM/YYYY HH:MM AM/PM) matching other components
-- **Sales Reports PDF Export** (Latest):
-  - **DomPDF Integration**: ✅ Fully implemented PDF export using Barryvdh Laravel DomPDF
-  - **Professional PDF Layout**: 
-    - Header with report title and date range
-    - Summary cards showing total sales, paid, due, and invoice count
-    - Complete sales data table with all columns (Invoice #, Date, Customer, Total, Paid, Due, Status)
-    - Top selling products section with quantity and revenue
-    - Applied filters display
-    - Footer with generation timestamp
-  - **PDF Features**:
+- **PDF Export for All Reports** (Latest):
+  - **DomPDF Integration**: ✅ Fully implemented PDF export using Barryvdh Laravel DomPDF for all report types
+  - **Compact & Standardized Design**: 
+    - All PDFs use consistent compact layout (9px body font, 16px headers, 8px table font)
+    - Reduced spacing and padding for maximum data per page
+    - Standardized header, summary boxes, and table formatting
+    - Professional styling with proper borders and color coding
+  - **PDF Features** (All Reports):
     - Landscape A4 format for better table visibility
     - Currency formatting with "Tk" symbol (compatible with DomPDF)
-    - Status badges with color coding
-    - Professional styling with proper spacing and borders
-    - Downloadable PDF with timestamped filename (sales_report_YYYY-MM-DD_HHMMSS.pdf)
+    - Status badges with color coding (where applicable)
+    - Applied filters display
+    - Footer with generation timestamp
+    - Downloadable PDF with timestamped filename
+  - **Sales Reports PDF**:
+    - Complete sales data table with all columns
+    - Top selling products section (top 10)
+    - Summary: total sales, paid, due, invoice count
+  - **Purchase Reports PDF**:
+    - Complete purchase data table
+    - Summary: total purchases, paid, due, order count
+  - **Stock Reports PDF**:
+    - Complete stock data table with status indicators
+    - Summary: total products, stock value, low stock count, out of stock count
+  - **Due Reports PDF**:
+    - Supports both customer and supplier due reports
+    - Overdue highlighting
+    - Summary: total due, overdue amount, total parties
+  - **Profit Reports PDF**:
+    - Supports all grouping options (daily, weekly, monthly, product, category)
+    - Profit indicators with color coding (positive/negative)
+    - Summary: total revenue, cost, gross profit, profit margin
   - **Controller Implementation**: 
-    - Separate SalesReportController with dedicated exportPDF method
-    - Fetches all sales data (no pagination) for complete PDF export
-    - Applies same filters as main report (date range, customer, status)
-    - Includes top products and summary calculations
-  - **View Template**: Blade template at `resources/views/reports/sales-report.blade.php` with comprehensive styling
+    - Separate controllers for each report type (SalesReportController, PurchaseReportController, StockReportController, DueReportController, ProfitReportController)
+    - Each controller has dedicated exportPDF method
+    - Fetches all data (no pagination) for complete PDF export
+    - Applies same filters as main report
+    - Includes summary calculations
+  - **View Templates**: Blade templates at `resources/views/reports/` with standardized compact styling
 
 ## 🛠️ Development
 

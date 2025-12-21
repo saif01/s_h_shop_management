@@ -365,8 +365,19 @@ export default {
         async exportPDF() {
             try {
                 this.exporting = true;
+                // Prepare params - only send filters that the controller uses
+                const params = {};
+                if (this.filters.warehouse_id) {
+                    params.warehouse_id = this.filters.warehouse_id;
+                }
+                if (this.filters.category_id) {
+                    params.category_id = this.filters.category_id;
+                }
+                if (this.filters.low_stock_only) {
+                    params.low_stock_only = this.filters.low_stock_only;
+                }
                 const response = await this.$axios.get('/api/v1/reports/stock/export/pdf', {
-                    params: this.filters,
+                    params,
                     responseType: 'blob',
                     headers: this.getAuthHeaders()
                 });
