@@ -541,13 +541,73 @@ All reports include filtering, summary cards, pagination, sorting, and export op
 
 ### 4) Dashboard (Owner Dashboard) ✅
 
-#### Key Metrics Display
-- **Today's Sales**: Total sales amount for current day
-- **This Month's Sales**: Monthly sales performance
-- **Low Stock Items Count**: Number of products below minimum level
-- **Total Customer Due**: Outstanding customer payments
-- **Product Count**: Total active products
-- **Recent Sales List**: Last 10 sales with customer details
+#### Modern Dynamic Dashboard
+A comprehensive, modern dashboard with real-time business insights and visualizations.
+
+**Primary KPI Cards** (with trend indicators):
+- **Today's Sales**: Total sales amount for current day with day-over-day growth percentage
+- **This Month's Sales**: Monthly sales performance with month-over-month growth percentage
+- **This Month Profit**: Calculated profit (Revenue - Cost - Discount) for current month
+- **Customer Due**: Total outstanding customer payments
+
+**Secondary Metrics Cards**:
+- **Today Purchases**: Total purchases for current day
+- **Supplier Due**: Total outstanding supplier payments
+- **Products**: Total product count
+- **Low Stock Items**: Count of products below minimum stock level
+
+**Interactive Charts**:
+- **Sales Trend Chart**: Visual representation of sales performance
+  - Toggle between 7-day and 30-day views
+  - Line chart with filled area using Chart.js
+  - Interactive tooltips showing BDT currency values
+  - Y-axis with formatted currency (৳) labels
+
+**Quick Stats Panel**:
+- Customer count
+- Supplier count
+- Month purchases total
+
+**Top Performers**:
+- **Top Products**: Top 5 best-selling products this month with:
+  - Product name and ranking
+  - Units sold
+  - Total sales in BDT (৳)
+- **Top Customers**: Top 5 customers by sales this month with:
+  - Customer name with avatar
+  - Number of orders
+  - Total sales in BDT (৳)
+
+**Stock Alerts**:
+- **Low Stock Items**: Real-time alerts for products below minimum stock level
+  - Product name and SKU
+  - Current stock quantity vs minimum required
+  - Quantity needed indicator
+  - Color-coded alerts (red for low stock, green when all stocked)
+  - Maximum 10 items displayed
+
+**Recent Sales Table**:
+- Last 10 sales transactions
+  - Invoice number
+  - Customer name (or Walk-in indicator)
+  - Total, Paid, and Due amounts in BDT (৳)
+  - Invoice date
+  - Status with color-coded chips
+  - Direct link to Reports section
+
+**Currency Formatting**:
+- All monetary values display in BDT (Bangladeshi Taka) with ৳ symbol
+- Consistent formatting across all dashboard metrics
+- Proper number formatting with comma separators (e.g., ৳12,345.67)
+
+**Technical Features**:
+- Real-time data loading with refresh button
+- Loading states with progress indicators
+- Error handling with user-friendly messages
+- Responsive design for all screen sizes
+- Modern Material Design UI with hover effects
+- Color-coded status indicators
+- Trend indicators showing growth/decline percentages
 
 ### 5) Technical Features ✅
 
@@ -937,7 +997,14 @@ All admin endpoints require authentication via Bearer token and appropriate perm
   - Compact landscape A4 format
 
 **Dashboard:**
-- `GET /api/v1/dashboard` - Get dashboard metrics (requires `access-dashboard`)
+- `GET /api/v1/dashboard` - Get comprehensive dashboard metrics (requires `access-dashboard`)
+  - Returns:
+    - **Metrics**: today_sales, yesterday_sales, sales_growth, month_sales, last_month_sales, month_growth, today_purchases, month_purchases, profit, customer_due, supplier_due, low_stock_items, product_count, customer_count, supplier_count
+    - **Charts**: sales_trend_7 (last 7 days daily), sales_trend_30 (last 4 weeks weekly)
+    - **Top Products**: Top 5 products by sales (this month) with id, name, image, quantity, sales
+    - **Top Customers**: Top 5 customers by sales (this month) with id, name, orders, sales
+    - **Low Stock Items**: Up to 10 products below minimum stock level with id, name, sku, image, quantity, minimum, needed
+    - **Recent Sales**: Last 10 sales with id, invoice_number, customer, total, paid, balance, date, status
 
 **User & Role Management:**
 - `GET /api/v1/users` - List users (requires `manage-users`)
@@ -1110,6 +1177,51 @@ public/
 - Advanced audit trail
 
 ### Recently Implemented Features ✅
+
+- **Enhanced Dashboard** (Latest):
+  - **Modern Dynamic Dashboard**: Comprehensive business insights with real-time metrics and visualizations
+  - **Enhanced KPI Cards**: 
+    - Primary metrics with trend indicators showing growth percentages (day-over-day, month-over-month)
+    - Color-coded cards with gradient icons (Today Sales, Month Sales, Profit, Customer Due)
+    - Secondary metrics cards (Purchases, Supplier Due, Products, Low Stock Items)
+  - **Interactive Charts**: 
+    - Sales trend visualization using Chart.js with 7-day and 30-day view toggles
+    - Line chart with filled area and interactive tooltips
+    - Y-axis formatted with BDT currency (৳) symbols
+    - Responsive chart sizing with proper aspect ratio
+  - **Top Performers**: 
+    - Top 5 products by sales with ranking badges, quantity sold, and sales amounts
+    - Top 5 customers by sales with avatars, order counts, and sales amounts
+  - **Stock Alerts**: 
+    - Real-time low stock alerts with quantity indicators
+    - Shows current stock vs minimum required
+    - Displays quantity needed with color-coded warnings
+    - Success message when all products are well stocked
+  - **Recent Sales Table**: 
+    - Last 10 sales transactions with complete details
+    - Invoice numbers, customer names, totals, paid, due amounts
+    - Color-coded status chips and balance indicators
+    - Direct link to Reports section
+  - **Quick Stats Panel**: 
+    - Customer count, supplier count, and month purchases
+    - Icon-based display with color coding
+  - **BDT Currency Formatting**: 
+    - All monetary values display with ৳ (Bangladeshi Taka) symbol
+    - Consistent formatting across all dashboard metrics
+    - Proper number formatting with comma separators (e.g., ৳12,345.67)
+  - **Comprehensive Metrics**: 
+    - 16 key metrics including sales (today, yesterday, month, growth rates), purchases, profit, dues (customer & supplier), and inventory counts
+    - Real-time calculations with percentage growth indicators
+  - **Responsive Design**: 
+    - Modern Material Design UI with hover effects
+    - Color-coded status indicators and badges
+    - Grid-based layout that adapts to all screen sizes
+  - **Technical Features**: 
+    - Real-time data loading with refresh button
+    - Loading states with progress indicators
+    - Comprehensive error handling with user-friendly messages
+    - Authentication headers for secure API calls
+    - Chart.js integration for data visualization
 - **Product Management Enhancements**:
   - **Stock Integration**: Complete stock and warehouse integration in product management
   - **Stock Adjustment UI**: Direct stock adjustment from product dialog with warehouse selection
