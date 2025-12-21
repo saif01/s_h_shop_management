@@ -36,22 +36,9 @@ class CurrentProjectSeeder extends Seeder
             Unit::updateOrCreate(['code' => $unit['code']], $unit);
         }
 
-        // Categories
-        $categories = [
-            ['name' => 'Grocery', 'slug' => 'grocery', 'order' => 1],
-            ['name' => 'Cosmetics', 'slug' => 'cosmetics', 'order' => 2],
-            ['name' => 'Electronics', 'slug' => 'electronics', 'order' => 3],
-        ];
-        foreach ($categories as $category) {
-            Category::updateOrCreate(
-                ['slug' => $category['slug']],
-                array_merge($category, [
-                    'is_active' => true,
-                    'created_by' => $adminUser?->id,
-                    'updated_by' => $adminUser?->id,
-                ])
-            );
-        }
+        // Categories - Now handled by CategorySeeder
+        // Run CategorySeeder to seed 15 categories
+        $this->call(CategorySeeder::class);
 
         // Warehouses
         $warehousesData = [

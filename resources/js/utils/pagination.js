@@ -75,3 +75,118 @@ export const paginationUtils = {
     }
 };
 
+/**
+ * Pagination Mixin
+ * Provides reusable pagination functionality for Vue components
+ * 
+ * Components using this mixin should:
+ * - Define a method to load data (e.g., loadCategories, loadProducts, etc.)
+ * - Override onPerPageChange() and onPageChange() to call their load method
+ * - Or define a loadData() method that will be called automatically
+ */
+export const paginationMixin = {
+    data() {
+        return {
+            // Pagination state - using centralized defaults
+            currentPage: defaultPaginationState.currentPage,
+            perPage: defaultPaginationState.perPage,
+            perPageOptions: defaultPaginationState.perPageOptions,
+            pagination: { ...defaultPaginationState.pagination },
+        };
+    },
+
+    methods: {
+        /**
+         * Build pagination parameters for API requests
+         * @param {Object} additionalParams - Additional parameters to include
+         * @returns {Object} Parameters object for API request
+         */
+        buildPaginationParams(additionalParams = {}) {
+            return paginationUtils.buildPaginationParams(
+                this.currentPage,
+                this.perPage,
+                additionalParams,
+                this.sortBy,
+                this.sortDirection
+            );
+        },
+
+        /**
+         * Update pagination state from API response
+         * @param {Object} responseData - Response data from API
+         */
+        updatePagination(responseData) {
+            paginationUtils.updatePagination(this, responseData);
+        },
+
+        /**
+         * Reset pagination to first page
+         */
+        resetPagination() {
+            paginationUtils.resetPagination(this);
+        },
+
+        /**
+         * Handle per page change
+         * Resets pagination and reloads data
+         * Components can override this to call their specific load method
+         */
+        onPerPageChange() {
+            this.resetPagination();
+            // Try to call loadData if it exists, otherwise components should override this method
+            if (typeof this.loadData === 'function') {
+                this.loadData();
+            }
+        },
+
+        /**
+         * Handle per page update from PaginationControls component
+         * @param {number|string} value - New per page value
+         */
+        onPerPageUpdate(value) {
+            this.perPage = value;
+            this.onPerPageChange();
+        },
+
+        /**
+         * Handle page change
+         * Updates current page and reloads data
+         * Components can override this to call their specific load method
+         * @param {number} page - Page number to navigate to
+         */
+        onPageChange(page) {
+            this.currentPage = page;
+            // Try to call loadData if it exists, otherwise components should override this method
+            if (typeof this.loadData === 'function') {
+                this.loadData();
+            }
+        },
+
+        /**
+         * Handle table column sort
+         * Updates sort field/direction, resets to first page, and reloads data
+         * Components can override this to call their specific load method
+         * @param {string} field - Field name to sort by
+         */
+        onSort(field) {
+            // Use handleSort from commonMixin if available
+            if (typeof this.handleSort === 'function') {
+                this.handleSort(field);
+            } else {
+                // Fallback sorting logic
+                if (this.sortBy === field) {
+                    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    this.sortBy = field;
+                    this.sortDirection = 'asc';
+                }
+            }
+            this.currentPage = 1; // Reset to first page when sorting changes
+            // Try to call loadData if it exists, otherwise components should override this method
+            if (typeof this.loadData === 'function') {
+                this.loadData();
+            }
+        }
+    }
+};
+

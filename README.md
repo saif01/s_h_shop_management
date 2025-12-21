@@ -171,7 +171,24 @@ npm run build
   - **Storekeeper**: Stock, purchase, and product management
 - **User Management**: Complete user administration with profile management
 - **Permission Management**: Fine-grained permission control for all features
-- **Login Logging**: Track all login attempts with IP addresses and user agents
+- **Login Log Management**: ✅ **Complete login log tracking system**:
+  - Track all login attempts (successful and failed) with detailed information
+  - IP address and user agent tracking
+  - Email used for login attempt
+  - Status tracking (success/failed)
+  - Failure reason tracking (invalid credentials, etc.)
+  - Login timestamp recording
+  - Statistics dashboard with metrics:
+    - Total logins, successful logins, failed logins
+    - Unique users and unique IP addresses
+    - Recent activity (last 24 hours)
+  - Advanced filtering by status (success/failed)
+  - Search by email, IP address, or user agent
+  - Sortable columns (email, IP address, status, date)
+  - Pagination with customizable page sizes
+  - View detailed log information in dialog
+  - Delete individual logs
+  - Follows category view pattern for consistent UI/UX
 - **Activity Log**: Track who edited prices, stock, and sales (optional)
 
 #### B) Product Management ✅
@@ -527,8 +544,19 @@ This application follows the exact tech stack recommended in the PDF:
 - **Footer Settings**: Powered by text, version, copyright
 - **Email/SMTP Settings**: Email configuration for notifications (optional)
 
+### Login Log Management ✅
+- **Login Log Tracking**: Comprehensive login activity tracking system
+  - Automatic logging of all login attempts (successful and failed)
+  - Detailed log information: email, user, IP address, user agent, status, failure reason
+  - Login timestamp for successful logins
+  - Statistics dashboard with key metrics
+  - Advanced filtering and search capabilities
+  - Sortable table columns following category view pattern
+  - Pagination with PaginationControls component
+  - View and delete individual logs
+  - Consistent UI/UX with other admin components
+
 ### Activity Logging ✅
-- **Login Logs**: Track all login attempts with IP and user agent
 - **User Activity**: Track who performed critical actions (optional)
 
 ## 📊 Module Alignment with PDF Requirements
@@ -544,6 +572,7 @@ This application follows the exact tech stack recommended in the PDF:
 | Reports (7 types) | ✅ **NEW** | AdminReports, SalesReports, PurchaseReports, StockReports, DueReports, ProfitReports |
 | Dashboard | ✅ Complete | AdminDashboard (with all required metrics) |
 | Settings | ✅ Complete | AdminSettings |
+| Login Logs | ✅ Complete | AdminLoginLogs |
 
 **Legend:**
 - ✅ Complete - Fully implemented and tested
@@ -627,6 +656,7 @@ The seeder creates demo users for shop management roles. All users have the pass
 - `view-reports` - For Reports & Analytics access
 - `manage-units` - For Unit management
 - `manage-warehouses` - For Warehouse management
+- `view-login-logs` - For Login Log Management access
 
 ## 📚 API Documentation
 
@@ -828,8 +858,18 @@ All admin endpoints require authentication via Bearer token and appropriate perm
 - `GET /api/v1/permissions` - List permissions (requires `manage-roles`)
 
 **Login Logs:**
-- `GET /api/v1/login-logs` - List login logs (requires `view-login-logs`)
+- `GET /api/v1/login-logs` - List login logs with filtering, sorting, and pagination (requires `view-login-logs`)
+  - **Filtering**: Filter by `status` (success/failed) or `user_id`
+  - **Search**: Search by `search` parameter (searches email, IP address, user agent, failure reason)
+  - **Sorting**: Sort by `sort_by` and `sort_direction` parameters
+    - Allowed fields: id, email, ip_address, status, created_at, logged_in_at
+    - Default: sorted by created_at (desc)
+  - **Pagination**: Use `per_page` parameter (default: 10)
+  - **Response**: Includes user relationship with pagination metadata
+- `GET /api/v1/login-logs/{id}` - Get login log details (requires `view-login-logs`)
+- `DELETE /api/v1/login-logs/{id}` - Delete login log (requires `view-login-logs`)
 - `GET /api/v1/login-logs/statistics` - Get login statistics (requires `view-login-logs`)
+  - Returns: total, successful, failed, unique_users, unique_ips, recent activity, and trends data
 
 **Settings:**
 - `GET /api/v1/settings` - Get all settings (requires authentication)
@@ -858,7 +898,7 @@ app/
 │   ├── Controllers/
 │   │   └── Api/              # Admin API controllers
 │   │       ├── auth/         # Authentication
-│   │       ├── logs/         # Login logs, Visitor logs
+│   │       ├── logs/         # Login logs
 │   │       ├── master/       # Customers, Suppliers
 │   │       ├── payments/     # Payment management
 │   │       ├── products/     # Products, Categories, Units
@@ -899,7 +939,7 @@ resources/
 │   ├── components/
 │   │   └── admin/            # Admin panel components
 │   │       ├── auth/         # Login
-│   │       ├── logs/         # Login logs, Visitor logs
+│   │       ├── logs/         # Login logs
 │   │       ├── master/       # Customers, Suppliers
 │   │       ├── products/     # Products, Categories, Units
 │   │       ├── purchase/     # Purchases
@@ -1018,6 +1058,17 @@ public/
   - **Date Pickers**: DatePicker components for invoice date and due date
   - **Sortable Columns**: Sort purchases by invoice number, date, status, and total amount
   - **Pagination**: Customizable page sizes with "Show All" option
+- **Login Log Management** (Latest):
+  - **Complete Login Tracking**: Automatic logging of all login attempts with detailed information
+  - **Statistics Dashboard**: Key metrics including total logins, successful/failed logins, unique users/IPs
+  - **Advanced Filtering**: Filter logs by status (success/failed) with real-time updates
+  - **Search Functionality**: Search by email, IP address, or user agent
+  - **Sortable Table**: Sort by email, IP address, status, or date with visual indicators
+  - **Consistent UI/UX**: Follows category view pattern for table headers and pagination
+  - **PaginationControls Integration**: Uses shared PaginationControls component for items per page and navigation
+  - **View Dialog**: Detailed log information display with user relationship
+  - **Delete Functionality**: Delete individual login logs with confirmation
+  - **Date Formatting**: Consistent date-time format (DD/MM/YYYY HH:MM AM/PM) matching other components
 
 ## 🛠️ Development
 

@@ -25,7 +25,13 @@ export default {
 
             // Loading states
             loading: false,
-            saving: false
+            saving: false,
+
+            // Common filter options
+            activeOptions: [
+                { title: 'Active', value: true },
+                { title: 'Inactive', value: false }
+            ]
         };
     },
 
@@ -256,6 +262,108 @@ export default {
             // Check if field exists at root level
             else if (Object.prototype.hasOwnProperty.call(this, fieldName)) {
                 this[fieldName] = fieldValue;
+            }
+        },
+
+        /**
+         * Check if currently sorting by a specific field
+         * @param {string} field - Field name to check
+         * @returns {boolean} True if sorting by the field
+         */
+        isSortingBy(field) {
+            return this.sortBy === field;
+        },
+
+        /**
+         * Get sort direction for a specific field
+         * @param {string} field - Field name
+         * @returns {string|null} Sort direction ('asc', 'desc', or null)
+         */
+        getSortDirection(field) {
+            if (this.sortBy === field) {
+                return this.sortDirection;
+            }
+            return null;
+        },
+
+        /**
+         * Open edit/create dialog
+         * Components should override editingItem and dialog properties
+         * @param {Object|null} item - Item to edit, or null for new item
+         */
+        openDialog(item) {
+            if (this.editingItem !== undefined) {
+                this.editingItem = item;
+            }
+            if (this.dialog !== undefined) {
+                this.dialog = true;
+            }
+        },
+
+        /**
+         * Open view dialog
+         * Components should override selectedItem and viewDialog properties
+         * @param {Object} item - Item to view
+         */
+        openViewDialog(item) {
+            if (this.selectedItem !== undefined) {
+                this.selectedItem = item;
+            }
+            if (this.viewDialog !== undefined) {
+                this.viewDialog = true;
+            }
+        },
+
+        /**
+         * Generic delete method with confirmation
+         * @param {Object} item - Item to delete
+         * @param {Object} options - Configuration options
+         * @param {string} options.apiEndpoint - API endpoint (e.g., '/api/v1/categories')
+         * @param {string} options.itemName - Display name for the item (e.g., 'category')
+         * @param {string} options.itemLabel - Label to show in confirmation (defaults to item.name)
+         * @param {string} options.successMessage - Success message (defaults to 'Item deleted successfully')
+         * @param {string} options.errorMessage - Error message (defaults to 'Error deleting item')
+         * @param {Function} options.onSuccess - Callback after successful deletion (should reload data)
+         * @param {Function} options.beforeDelete - Optional callback before deletion (return false to cancel)
+         * @returns {Promise<void>}
+         */
+        async deleteItem(item, options = {}) {
+            const {
+                apiEndpoint,
+                itemName = 'item',
+                itemLabel = item.name || item.title || 'this item',
+                successMessage = `${itemName.charAt(0).toUpperCase() + itemName.slice(1)} deleted successfully`,
+                errorMessage = `Error deleting ${itemName}`,
+                onSuccess,
+                beforeDelete
+            } = options;
+
+            // Check beforeDelete callback
+            if (beforeDelete && typeof beforeDelete === 'function') {
+                const shouldContinue = await beforeDelete(item);
+                if (shouldContinue === false) {
+                    return;
+                }
+            }
+
+            // Confirm deletion
+            if (!confirm(`Are you sure you want to delete ${itemLabel}?`)) {
+                return;
+            }
+
+            try {
+                await this.$axios.delete(`${apiEndpoint}/${item.id}`, {
+                    headers: this.getAuthHeaders()
+                });
+
+                this.showSuccess(successMessage);
+
+                // Call onSuccess callback to reload data
+                if (onSuccess && typeof onSuccess === 'function') {
+                    await onSuccess();
+                }
+            } catch (error) {
+                this.handleApiError(error, errorMessage);
             }
         }
     }

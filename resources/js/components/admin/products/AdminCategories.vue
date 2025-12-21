@@ -173,7 +173,7 @@
 <script>
 import commonMixin from '../../../mixins/commonMixin';
 import PaginationControls from '../../common/PaginationControls.vue';
-import { defaultPaginationState, paginationUtils } from '../../../utils/pagination.js';
+import { paginationMixin } from '../../../utils/pagination.js';
 import CategoryViewDialog from './dialogs/category/CategoryViewDialog.vue';
 import CategoryDialog from './dialogs/category/CategoryDialog.vue';
 
@@ -183,24 +183,15 @@ export default {
         CategoryViewDialog,
         CategoryDialog
     },
-    mixins: [commonMixin],
+    mixins: [commonMixin, paginationMixin],
     data() {
         return {
             categories: [],
             activeFilter: null,
-            activeOptions: [
-                { title: 'Active', value: true },
-                { title: 'Inactive', value: false }
-            ],
             dialog: false,
             editingCategory: null,
             viewDialog: false,
             selectedCategory: null,
-            // Pagination state - using centralized defaults
-            currentPage: defaultPaginationState.currentPage,
-            perPage: defaultPaginationState.perPage,
-            perPageOptions: defaultPaginationState.perPageOptions,
-            pagination: { ...defaultPaginationState.pagination },
         };
     },
     async mounted() {
@@ -214,7 +205,7 @@ export default {
 
                 // Handle "Show All" option
                 if (this.perPage === 'all') {
-                    params.per_page = 999999; // Very large number to get all records
+                    params.per_page = 999999;
                 }
 
                 if (this.search) {
@@ -230,7 +221,6 @@ export default {
                 });
 
                 this.categories = response.data.data || [];
-
                 this.updatePagination(response.data);
             } catch (error) {
                 this.handleApiError(error, 'Failed to load categories');
@@ -238,56 +228,10 @@ export default {
                 this.loading = false;
             }
         },
-        openDialog(category) {
-            this.editingCategory = category;
-            this.dialog = true;
-        },
-        handleCategorySaved() {
-            this.loadCategories();
-        },
-        openViewDialog(category) {
-            this.selectedCategory = category;
-            this.viewDialog = true;
-        },
-        async deleteCategory(category) {
-            if (!confirm(`Are you sure you want to delete ${category.name}?`)) {
-                return;
-            }
-
-            try {
-                const token = localStorage.getItem('admin_token');
-                await this.$axios.delete(`/api/v1/categories/${category.id}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-
-                this.showSuccess('Category deleted successfully');
-                await this.loadCategories();
-            } catch (error) {
-                this.handleApiError(error, 'Error deleting category');
-            }
-        },
-        buildPaginationParams(additionalParams = {}) {
-            return paginationUtils.buildPaginationParams(
-                this.currentPage,
-                this.perPage,
-                additionalParams,
-                this.sortBy,
-                this.sortDirection
-            );
-        },
-        updatePagination(responseData) {
-            paginationUtils.updatePagination(this, responseData);
-        },
-        resetPagination() {
-            paginationUtils.resetPagination(this);
-        },
+        // Override pagination mixin methods to call loadCategories
         onPerPageChange() {
             this.resetPagination();
             this.loadCategories();
-        },
-        onPerPageUpdate(value) {
-            this.perPage = value;
-            this.onPerPageChange();
         },
         onPageChange(page) {
             this.currentPage = page;
@@ -295,17 +239,31 @@ export default {
         },
         onSort(field) {
             this.handleSort(field);
-            this.currentPage = 1; // Reset to first page when sorting changes
+            this.currentPage = 1;
             this.loadCategories();
         },
-        isSortingBy(field) {
-            return this.sortBy === field;
+        // Override openDialog to use component-specific property names
+        openDialog(category) {
+            this.editingCategory = category;
+            this.dialog = true;
         },
-        getSortDirection(field) {
-            if (this.sortBy === field) {
-                return this.sortDirection;
-            }
-            return null;
+        // Override openViewDialog to use component-specific property names
+        openViewDialog(category) {
+            this.selectedCategory = category;
+            this.viewDialog = true;
+        },
+        handleCategorySaved() {
+            this.loadCategories();
+        },
+        deleteCategory(category) {
+            this.deleteItem(category, {
+                apiEndpoint: '/api/v1/categories',
+                itemName: 'category',
+                itemLabel: category.name,
+                successMessage: 'Category deleted successfully',
+                errorMessage: 'Error deleting category',
+                onSuccess: () => this.loadCategories()
+            });
         },
     }
 };
