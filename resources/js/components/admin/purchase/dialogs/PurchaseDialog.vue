@@ -100,7 +100,7 @@
                                                     item-title="label" item-value="value" label="Product"
                                                     placeholder="Select product" density="compact" variant="outlined"
                                                     hide-details="auto"
-                                                    :menu-props="{ maxHeight: 400, offset: true, attach: 'body', zIndex: 9999 }"
+                                                    :menu-props="{ maxHeight: 400, offset: [0, 8], attach: 'body', zIndex: 9999 }"
                                                     @update:model-value="calculateItemTotal(index)"
                                                     :rules="[rules.required]" clearable
                                                     no-data-text="No products available"></v-select>
@@ -178,6 +178,9 @@
             <v-card-actions class="pa-3">
                 <v-spacer></v-spacer>
                 <v-btn @click="handleCancel" variant="text" density="compact">Cancel</v-btn>
+                <v-btn @click="handleSaveDraft" color="grey" variant="outlined" :loading="saving" density="compact">
+                    Save as Draft
+                </v-btn>
                 <v-btn @click="handleSave" color="primary" :loading="saving" density="compact">
                     {{ editingPurchase ? 'Update' : 'Create' }}
                 </v-btn>
@@ -262,17 +265,47 @@ export default {
             return this.calculatedSubtotal + this.calculatedTax + (this.localForm.shipping_cost || 0) - this.calculatedDiscount;
         },
         validProductOptions() {
-            // Ensure productOptions is always an array and properly formatted
-            if (!Array.isArray(this.productOptions)) {
-                console.warn('ProductOptions is not an array:', this.productOptions);
+            // Handle Vue 3 reactive Proxy objects - check if it's array-like
+            const options = this.productOptions;
+
+            // Check if it's an array or array-like (Vue 3 Proxy)
+            if (!options || (typeof options !== 'object')) {
+                return [];
+            }
+
+            // Handle empty array (valid state, no need to warn)
+            if (!Array.isArray(options) || options.length === 0) {
+                // Still need to check for editing purchase items even if options are empty
+                if (this.editingPurchase && this.editingPurchase.items) {
+                    const valid = [];
+                    const existingValues = new Set();
+
+                    this.editingPurchase.items.forEach(item => {
+                        const productId = item.product_id ? Number(item.product_id) : null;
+                        if (productId && !existingValues.has(productId)) {
+                            // Product not in options, add it with product name if available
+                            const productName = item.product?.name || `Product #${productId}`;
+                            const productSku = item.product?.sku || '';
+                            valid.push({
+                                label: productSku ? `${productName} (${productSku})` : productName,
+                                value: productId
+                            });
+                            existingValues.add(productId); // Prevent duplicates
+                        }
+                    });
+                    return valid;
+                }
                 return [];
             }
 
             // Return all options that have both label and value, ensuring values are numbers
-            const valid = this.productOptions
+            const valid = options
                 .filter(option => {
-                    const hasLabel = option && (option.label || option.title);
-                    const hasValue = option && (option.value !== undefined && option.value !== null);
+                    if (!option || typeof option !== 'object') {
+                        return false;
+                    }
+                    const hasLabel = option.label || option.title;
+                    const hasValue = option.value !== undefined && option.value !== null;
                     return hasLabel && hasValue;
                 })
                 .map(option => ({
@@ -300,30 +333,41 @@ export default {
                 });
             }
 
-            if (valid.length === 0 && this.productOptions.length > 0) {
-                console.warn('No valid product options found. ProductOptions:', this.productOptions);
+            // Only warn if we had items but none were valid (actual problem)
+            if (valid.length === 0 && options.length > 0) {
+                console.warn('No valid product options found. All options are missing label or value.');
             }
             return valid;
         },
         validWarehouseOptions() {
-            // Ensure warehouseOptions is always an array and properly formatted
-            if (!Array.isArray(this.warehouseOptions)) {
-                console.warn('WarehouseOptions is not an array:', this.warehouseOptions);
+            // Handle Vue 3 reactive Proxy objects - check if it's array-like
+            const options = this.warehouseOptions;
+
+            // Check if it's an array or array-like (Vue 3 Proxy)
+            if (!options || (typeof options !== 'object')) {
                 return [];
             }
-            if (this.warehouseOptions.length === 0) {
-                console.warn('WarehouseOptions is empty');
+
+            // Handle empty array (valid state, no need to warn)
+            if (!Array.isArray(options) || options.length === 0) {
                 return [];
             }
+
             // Return all options that have both label and value
-            const valid = this.warehouseOptions.filter(option => {
-                const hasLabel = option && (option.label || option.title);
-                const hasValue = option && (option.value !== undefined && option.value !== null);
+            const valid = options.filter(option => {
+                if (!option || typeof option !== 'object') {
+                    return false;
+                }
+                const hasLabel = option.label || option.title;
+                const hasValue = option.value !== undefined && option.value !== null;
                 return hasLabel && hasValue;
             });
-            if (valid.length === 0 && this.warehouseOptions.length > 0) {
-                console.warn('No valid warehouse options found. WarehouseOptions:', this.warehouseOptions);
+
+            // Only warn if we had items but none were valid (actual problem)
+            if (valid.length === 0 && options.length > 0) {
+                console.warn('No valid warehouse options found. All options are missing label or value.');
             }
+
             return valid;
         }
     },
@@ -345,22 +389,34 @@ export default {
         },
         productOptions: {
             handler(newVal) {
-                // Ensure productOptions are reactive
-                if (newVal && Array.isArray(newVal) && newVal.length > 0) {
-                    console.log('ProductOptions updated:', newVal.length, 'products');
-                } else {
-                    console.warn('ProductOptions issue:', newVal);
+                // Only log when there's an actual issue, not when it's just empty
+                if (newVal !== null && newVal !== undefined) {
+                    if (Array.isArray(newVal)) {
+                        // Empty array is valid, no need to warn
+                        if (newVal.length > 0) {
+                            console.log('ProductOptions updated:', newVal.length, 'products');
+                        }
+                    } else {
+                        // Not an array is a problem
+                        console.warn('ProductOptions is not an array:', typeof newVal);
+                    }
                 }
             },
             immediate: true
         },
         warehouseOptions: {
             handler(newVal) {
-                // Ensure warehouseOptions are reactive
-                if (newVal && Array.isArray(newVal) && newVal.length > 0) {
-                    console.log('WarehouseOptions updated:', newVal.length, 'warehouses');
-                } else {
-                    console.warn('WarehouseOptions issue:', newVal);
+                // Only log when there's an actual issue, not when it's just empty
+                if (newVal !== null && newVal !== undefined) {
+                    if (Array.isArray(newVal)) {
+                        // Empty array is valid, no need to warn
+                        if (newVal.length > 0) {
+                            console.log('WarehouseOptions updated:', newVal.length, 'warehouses');
+                        }
+                    } else {
+                        // Not an array is a problem
+                        console.warn('WarehouseOptions is not an array:', typeof newVal);
+                    }
                 }
             },
             immediate: true
@@ -452,6 +508,38 @@ export default {
                 tax_amount: this.calculatedTax,
                 discount_amount: this.calculatedDiscount,
                 shipping_cost: this.localForm.shipping_cost || 0,
+                items: this.localForm.items.map(item => ({
+                    product_id: item.product_id,
+                    quantity: item.quantity,
+                    unit_price: item.unit_price,
+                    discount: item.discount || 0,
+                    tax: item.tax || 0,
+                    notes: item.notes || null,
+                }))
+            };
+
+            this.$emit('save', formData, null);
+        },
+        handleSaveDraft() {
+            // For draft, we don't need strict validation - just basic checks
+            if (!this.localForm.supplier_id || !this.localForm.warehouse_id || !this.localForm.invoice_date) {
+                this.$emit('save', { ...this.localForm }, 'Please fill in required fields (Supplier, Warehouse, and Invoice Date)');
+                return;
+            }
+
+            if (this.localForm.items.length === 0) {
+                this.$emit('save', { ...this.localForm }, 'Please add at least one item');
+                return;
+            }
+
+            // Prepare form data with calculated totals, explicitly set paid_amount to 0 for draft
+            const formData = {
+                ...this.localForm,
+                subtotal: this.calculatedSubtotal,
+                tax_amount: this.calculatedTax,
+                discount_amount: this.calculatedDiscount,
+                shipping_cost: this.localForm.shipping_cost || 0,
+                paid_amount: 0, // Explicitly set to 0 to ensure draft status
                 items: this.localForm.items.map(item => ({
                     product_id: item.product_id,
                     quantity: item.quantity,

@@ -325,22 +325,68 @@ export default {
         },
         async loadProducts() {
             try {
-                const response = await this.$axios.get('/api/v1/products', {
+                // Try loading active products first
+                let response = await this.$axios.get('/api/v1/products', {
                     params: { per_page: 1000, is_active: true },
                     headers: this.getAuthHeaders()
                 });
-                // Handle both paginated and non-paginated responses
-                const productsList = response.data.data || response.data || [];
+                
+                // Handle paginated response structure
+                let productsList = [];
+                if (response.data) {
+                    // Check if it's a paginated response
+                    if (response.data.data && Array.isArray(response.data.data)) {
+                        productsList = response.data.data;
+                    } else if (Array.isArray(response.data)) {
+                        productsList = response.data;
+                    }
+                }
+                
+                // If no active products found, try loading all products
+                if (productsList.length === 0) {
+                    console.log('No active products found, loading all products...');
+                    response = await this.$axios.get('/api/v1/products', {
+                        params: { per_page: 1000 },
+                        headers: this.getAuthHeaders()
+                    });
+                    
+                    if (response.data) {
+                        if (response.data.data && Array.isArray(response.data.data)) {
+                            productsList = response.data.data;
+                        } else if (Array.isArray(response.data)) {
+                            productsList = response.data;
+                        }
+                    }
+                }
+                
+                console.log('Products API response:', {
+                    total: productsList.length,
+                    sample: productsList.length > 0 ? productsList[0] : null
+                });
+                
                 this.products = productsList;
                 this.productOptions = productsList
-                    .filter(p => p && p.id && p.name) // Filter out invalid products
+                    .filter(p => {
+                        // More lenient filtering - just check if it's a valid object with an id
+                        return p && typeof p === 'object' && p.id !== undefined && p.id !== null;
+                    })
                     .map(p => ({
-                        label: p.sku ? `${p.name} (${p.sku})` : (p.name || 'Unknown Product'),
+                        label: p.sku ? `${p.name || 'Unnamed Product'} (${p.sku})` : (p.name || `Product #${p.id}`),
                         value: p.id
                     }));
+                
                 console.log('Products loaded:', this.productOptions.length, 'options');
+                
+                if (this.productOptions.length === 0 && productsList.length > 0) {
+                    console.warn('Products were loaded but none passed validation. Sample product:', productsList[0]);
+                } else if (this.productOptions.length === 0) {
+                    console.warn('No products found in the system. Please create products first.');
+                }
             } catch (error) {
                 console.error('Error loading products:', error);
+                if (error.response) {
+                    console.error('API Error Response:', error.response.status, error.response.data);
+                }
                 this.productOptions = [];
                 this.products = [];
             }
