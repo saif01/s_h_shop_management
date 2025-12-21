@@ -229,20 +229,6 @@ export default {
                 this.loading = false;
             }
         },
-        // Override pagination mixin methods to call loadCategories
-        onPerPageChange() {
-            this.resetPagination();
-            this.loadCategories();
-        },
-        onPageChange(page) {
-            this.currentPage = page;
-            this.loadCategories();
-        },
-        onSort(field) {
-            this.handleSort(field);
-            this.currentPage = 1;
-            this.loadCategories();
-        },
         // Override openDialog to use component-specific property names
         openDialog(category) {
             this.editingCategory = category;

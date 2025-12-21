@@ -81,7 +81,8 @@ export const paginationUtils = {
  * 
  * Components using this mixin should:
  * - Define a method to load data (e.g., loadCategories, loadProducts, etc.)
- * - Override onPerPageChange() and onPageChange() to call their load method
+ * - Optionally set loadMethodName in data to specify which method to call
+ * - The mixin will automatically detect load methods that start with "load"
  * - Or define a loadData() method that will be called automatically
  */
 export const paginationMixin = {
@@ -127,16 +128,47 @@ export const paginationMixin = {
         },
 
         /**
-         * Handle per page change
-         * Resets pagination and reloads data
-         * Components can override this to call their specific load method
+         * Find and call the appropriate load method
+         * Tries to find a load method in this order:
+         * 1. loadMethodName property (if set in component data)
+         * 2. Methods starting with "load" (loadCategories, loadProducts, etc.)
+         * 3. loadData method (generic fallback)
          */
-        onPerPageChange() {
-            this.resetPagination();
-            // Try to call loadData if it exists, otherwise components should override this method
+        callLoadMethod() {
+            // Check if component specified a load method name
+            if (this.loadMethodName && typeof this[this.loadMethodName] === 'function') {
+                this[this.loadMethodName]();
+                return;
+            }
+
+            // Try to find a method starting with "load"
+            const methods = Object.getOwnPropertyNames(Object.getPrototypeOf(this));
+            const loadMethods = methods.filter(method =>
+                method.startsWith('load') &&
+                method !== 'loadData' &&
+                typeof this[method] === 'function'
+            );
+
+            // If found, use the first one (most components have one load method)
+            if (loadMethods.length > 0) {
+                this[loadMethods[0]]();
+                return;
+            }
+
+            // Fallback to loadData if it exists
             if (typeof this.loadData === 'function') {
                 this.loadData();
             }
+        },
+
+        /**
+         * Handle per page change
+         * Resets pagination and reloads data
+         * Automatically calls the appropriate load method
+         */
+        onPerPageChange() {
+            this.resetPagination();
+            this.callLoadMethod();
         },
 
         /**
@@ -151,21 +183,18 @@ export const paginationMixin = {
         /**
          * Handle page change
          * Updates current page and reloads data
-         * Components can override this to call their specific load method
+         * Automatically calls the appropriate load method
          * @param {number} page - Page number to navigate to
          */
         onPageChange(page) {
             this.currentPage = page;
-            // Try to call loadData if it exists, otherwise components should override this method
-            if (typeof this.loadData === 'function') {
-                this.loadData();
-            }
+            this.callLoadMethod();
         },
 
         /**
          * Handle table column sort
          * Updates sort field/direction, resets to first page, and reloads data
-         * Components can override this to call their specific load method
+         * Automatically calls the appropriate load method
          * @param {string} field - Field name to sort by
          */
         onSort(field) {
@@ -182,10 +211,7 @@ export const paginationMixin = {
                 }
             }
             this.currentPage = 1; // Reset to first page when sorting changes
-            // Try to call loadData if it exists, otherwise components should override this method
-            if (typeof this.loadData === 'function') {
-                this.loadData();
-            }
+            this.callLoadMethod();
         }
     }
 };

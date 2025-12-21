@@ -171,6 +171,22 @@ npm run build
   - **Storekeeper**: Stock, purchase, and product management
 - **User Management**: Complete user administration with profile management
 - **Permission Management**: Fine-grained permission control for all features
+- **Complete Permission System**: ✅ **26 permissions covering all system features**:
+  - **General**: `access-dashboard`, `upload-files`
+  - **Products**: `view-products`, `create-products`, `edit-products`, `delete-products`, `manage-categories`, `manage-units`
+  - **Warehouses/Stock**: `view-warehouses`, `manage-warehouses`, `view-stock-levels`, `view-stock-ledger`
+  - **Purchases**: `view-purchases`, `create-purchase`, `manage-suppliers`
+  - **Sales**: `view-sales`, `create-sale`, `manage-customers`
+  - **Payments**: `view-payments`, `record-payment`
+  - **Reports**: `view-reports`, `export-reports`
+  - **Users & Roles**: `manage-users`, `manage-roles`
+  - **Settings**: `manage-settings`
+  - **System**: `view-login-logs`
+- **Role Permissions**:
+  - **Administrator**: All permissions (full system access)
+  - **Cashier**: Dashboard, view products/warehouses/sales, create sales, manage customers, view/record payments, view reports, upload files
+  - **Storekeeper**: Dashboard, full product management, warehouse management, stock management, purchase management, supplier management, view/record payments, view reports, upload files
+- **Permission Middleware**: Supports comma-separated permissions (OR logic) - e.g., `permission:view-stock-levels,manage-warehouses`
 - **Login Log Management**: ✅ **Complete login log tracking system**:
   - Track all login attempts (successful and failed) with detailed information
   - IP address and user agent tracking
@@ -652,11 +668,23 @@ The seeder creates demo users for shop management roles. All users have the pass
 ⚠️ **Change these immediately in production!**
 
 ### Required Permissions for New Features:
-- `view-sales`, `create-sales`, `edit-sales`, `delete-sales` - For Sales/POS access
-- `view-reports` - For Reports & Analytics access
+- `view-sales`, `create-sale` - For Sales/POS access (view and create sales)
+- `view-reports`, `export-reports` - For Reports & Analytics access
 - `manage-units` - For Unit management
-- `manage-warehouses` - For Warehouse management
+- `manage-warehouses`, `view-warehouses`, `view-stock-levels` - For Warehouse and stock management
 - `view-login-logs` - For Login Log Management access
+- `upload-files` - For uploading images and files (required for product images, etc.)
+- `view-products`, `create-products`, `edit-products`, `delete-products` - For Product management
+- `manage-categories` - For Category management
+- `view-purchases`, `create-purchase` - For Purchase management
+- `manage-suppliers` - For Supplier management
+- `manage-customers` - For Customer management
+- `view-payments`, `record-payment` - For Payment management
+- `view-stock-ledger` - For Stock Ledger access
+- `access-dashboard` - For Dashboard access
+- `manage-settings` - For Settings management
+- `manage-users` - For User management
+- `manage-roles` - For Role and Permission management
 
 ## 📚 API Documentation
 
@@ -870,6 +898,19 @@ All admin endpoints require authentication via Bearer token and appropriate perm
 - `DELETE /api/v1/login-logs/{id}` - Delete login log (requires `view-login-logs`)
 - `GET /api/v1/login-logs/statistics` - Get login statistics (requires `view-login-logs`)
   - Returns: total, successful, failed, unique_users, unique_ips, recent activity, and trends data
+
+**File Upload:**
+- `POST /api/v1/upload/image` - Upload single image (requires `upload-files`)
+  - Accepts: `image` (file), `folder` (optional), `prefix` (optional)
+  - Returns: URL, path, filename, size, mime_type
+- `POST /api/v1/upload/images` - Upload multiple images (requires `upload-files`)
+  - Accepts: `images[]` (array of files), `folder` (optional), `prefix` (optional)
+  - Returns: Array of uploaded image information
+- `POST /api/v1/upload/file` - Upload file (requires `upload-files`)
+  - Accepts: `file` (file), `folder` (optional), `prefix` (optional)
+  - Returns: URL, path, filename, size, mime_type
+- `DELETE /api/v1/upload/image` - Delete uploaded image (requires `upload-files`)
+  - Accepts: `path` (image path to delete)
 
 **Settings:**
 - `GET /api/v1/settings` - Get all settings (requires authentication)
