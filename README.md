@@ -25,6 +25,7 @@ A comprehensive shop management web application built with Laravel and Vue.js. T
 - **Intervention Image**: ^3.11 - Image manipulation library
 - **Intervention Image Laravel**: ^1.5 - Laravel integration for image processing
 - **Barryvdh Laravel Snappy**: ^1.0 - PDF generation from HTML
+- **Barryvdh Laravel DomPDF**: ^3.1 - PDF generation for reports (implemented for sales reports)
 
 #### Data Export & Import
 - **Maatwebsite Excel**: ^3.1 - Excel file import/export functionality
@@ -468,13 +469,21 @@ npm run build
 #### G) Comprehensive Reporting System
 All reports include filtering, summary cards, and export options (Excel & PDF).
 
-**Sales Reports:**
+**Sales Reports:** ✅
 - Date range filtering (from/to dates)
 - Customer-wise sales analysis
 - Status filtering (draft, pending, partial, paid, cancelled)
 - Summary metrics: total sales, total paid, total due, invoice count
 - Top selling products (top 10 with quantity and revenue)
-- Export to Excel and PDF
+- **PDF Export**: ✅ Fully implemented with DomPDF
+  - Professional PDF layout with summary cards
+  - Complete sales data table with all columns
+  - Top selling products section
+  - Applied filters display
+  - Currency formatting (Tk symbol)
+  - Landscape A4 format
+  - Downloadable PDF with timestamped filename
+- Excel export (ready for implementation)
 
 **Purchase Reports:**
 - Date range filtering
@@ -520,7 +529,7 @@ All reports include filtering, summary cards, and export options (Excel & PDF).
 #### Non-Functional Requirements
 - **Responsive UI**: Desktop and mobile optimized with Vuetify
 - **Fast Product Search**: Real-time search in POS (critical for quick sales)
-- **Data Backup/Export**: Excel and PDF export for all reports (placeholder ready)
+- **Data Backup/Export**: PDF export implemented for sales reports, Excel export ready for implementation
 - **Audit Trail**: Track critical actions like price changes, stock edits (optional)
 - **Multi-language Support**: Bangla/English support (optional, ready for implementation)
 - **Secure Authentication**: Laravel Sanctum token-based authentication
@@ -535,7 +544,7 @@ This application follows the exact tech stack recommended in the PDF:
 - **Laravel Sanctum**: API authentication for admin panel
 - **PostgreSQL/MySQL**: Database (SQLite supported for development)
 - **Maatwebsite Excel**: Excel export functionality (ready for implementation)
-- **Barryvdh DomPDF**: PDF generation for reports and invoices (ready)
+- **Barryvdh DomPDF**: ✅ PDF generation for reports and invoices (implemented for sales reports)
 
 #### Frontend
 - **Vue 3**: Progressive JavaScript framework
@@ -855,8 +864,14 @@ All admin endpoints require authentication via Bearer token and appropriate perm
 
 **Reports & Analytics:**
 - `GET /api/v1/reports/sales` - Sales report with filters (requires `view-reports`)
-- `GET /api/v1/reports/sales/export/excel` - Export sales to Excel (requires `view-reports`)
-- `GET /api/v1/reports/sales/export/pdf` - Export sales to PDF (requires `view-reports`)
+  - Supports pagination, sorting, and filtering (date range, customer, status)
+  - Returns summary metrics and top selling products
+- `GET /api/v1/reports/sales/export/excel` - Export sales to Excel (requires `export-reports`) - Ready for implementation
+- `GET /api/v1/reports/sales/export/pdf` - ✅ Export sales to PDF (requires `export-reports`)
+  - Returns downloadable PDF file with all sales data
+  - Applies same filters as main report
+  - Includes summary, sales table, and top products
+  - Landscape A4 format with professional layout
 - `GET /api/v1/reports/purchases` - Purchase report (requires `view-reports`)
 - `GET /api/v1/reports/purchases/export/excel` - Export purchases to Excel (requires `view-reports`)
 - `GET /api/v1/reports/purchases/export/pdf` - Export purchases to PDF (requires `view-reports`)
@@ -1029,13 +1044,14 @@ public/
 - **Well-Structured**: Clear separation of concerns with Laravel MVC + Vue SPA
 - **Secure**: Laravel Sanctum authentication with role-based access control
 - **Modern Stack**: Laravel 12 + Vue 3 + Vuetify 3 for best developer experience
-- **Export Ready**: Placeholders for Excel/PDF exports (easy to implement with existing packages)
+- **Export Ready**: PDF export implemented for sales reports, Excel export ready for implementation
 - **Multi-Warehouse**: Built-in support for multiple warehouse locations
 - **Real-time Calculations**: Automatic tax, discount, and total calculations in POS
 - **Comprehensive Reports**: 5 report types with filtering and summary metrics
 
 ### Optional Features (Ready for Implementation)
-- Excel/PDF export functionality (packages installed, routes ready)
+- Excel export functionality for reports (packages installed, routes ready)
+- PDF export for other reports (Purchase, Stock, Due, Profit) - DomPDF installed and ready
 - Invoice printing templates
 - Sales/Purchase return processing
 - Barcode generation and printing
@@ -1110,6 +1126,27 @@ public/
   - **View Dialog**: Detailed log information display with user relationship
   - **Delete Functionality**: Delete individual login logs with confirmation
   - **Date Formatting**: Consistent date-time format (DD/MM/YYYY HH:MM AM/PM) matching other components
+- **Sales Reports PDF Export** (Latest):
+  - **DomPDF Integration**: ✅ Fully implemented PDF export using Barryvdh Laravel DomPDF
+  - **Professional PDF Layout**: 
+    - Header with report title and date range
+    - Summary cards showing total sales, paid, due, and invoice count
+    - Complete sales data table with all columns (Invoice #, Date, Customer, Total, Paid, Due, Status)
+    - Top selling products section with quantity and revenue
+    - Applied filters display
+    - Footer with generation timestamp
+  - **PDF Features**:
+    - Landscape A4 format for better table visibility
+    - Currency formatting with "Tk" symbol (compatible with DomPDF)
+    - Status badges with color coding
+    - Professional styling with proper spacing and borders
+    - Downloadable PDF with timestamped filename (sales_report_YYYY-MM-DD_HHMMSS.pdf)
+  - **Controller Implementation**: 
+    - Separate SalesReportController with dedicated exportPDF method
+    - Fetches all sales data (no pagination) for complete PDF export
+    - Applies same filters as main report (date range, customer, status)
+    - Includes top products and summary calculations
+  - **View Template**: Blade template at `resources/views/reports/sales-report.blade.php` with comprehensive styling
 
 ## 🛠️ Development
 
