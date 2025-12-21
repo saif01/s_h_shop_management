@@ -240,12 +240,21 @@ npm run build
   - Subtract Stock: Subtract from existing quantity
 - **Stock Valuation**: Calculate total stock value with average cost tracking
 - **Multi-Warehouse Support**: Manage inventory across multiple locations
-- **Warehouse Management**: Complete warehouse CRUD with:
+- **Warehouse Management**: ✅ **Enhanced warehouse management with advanced features**:
+  - Complete warehouse CRUD with modular dialog components
+  - **Compact Design**: Streamlined UI with compact form fields and reduced spacing
+  - **Pagination & Sorting**: 
+    - Server-side pagination with customizable page sizes (10, 25, 50, 100, 500, Show All)
+    - Sortable columns: Name, Code, City, Created Date
+    - Visual sort indicators with active/inactive states
+    - Total records display
+  - **Advanced Search**: Search warehouses by name, code, or city
+  - **Modular Dialogs**: Separate dialog components for add/edit, view, and delete operations
   - Warehouse name, code, and location
   - Contact information (phone, email)
-  - Full address details
-  - Manager assignment
-  - Active/Inactive status
+  - Full address details (address, city, state, postal code, country)
+  - Active/Inactive status management
+  - View warehouse details in dedicated view dialog
 - **Product-Stock Integration**: ✅ **Stock information displayed directly in product management**:
   - View stock quantities per warehouse in product dialog
   - Color-coded stock status (red: out of stock, yellow: low stock, green: sufficient)
@@ -440,7 +449,7 @@ This application follows the exact tech stack recommended in the PDF:
 |------------|----------------------|-------------------|
 | User & Role Management | ✅ Complete | AdminUsers, AdminRoles, AdminPermissions |
 | Product Management | ✅ Complete | AdminProducts, AdminCategories, AdminUnits, ProductDialog |
-| Stock/Inventory | ✅ Complete | AdminStockLedger, AdminWarehouses |
+| Stock/Inventory | ✅ Complete | AdminStockLedger, AdminWarehouses, WarehouseDialog, WarehouseViewDialog, WarehouseDeleteDialog |
 | Supplier & Purchase | ✅ Complete | AdminSuppliers, AdminPurchases, PurchaseDialog |
 | Sales (POS) | ✅ **NEW** | AdminSales, SaleDialog, ViewSaleDialog |
 | Customer & Due | ✅ Complete | AdminCustomers, CustomerDialog, ViewCustomerDialog |
@@ -613,7 +622,13 @@ All admin endpoints require authentication via Bearer token and appropriate perm
 - `DELETE /api/v1/units/{id}` - Delete unit (requires `manage-units`)
 
 **Warehouse Management:**
-- `GET /api/v1/warehouses` - List warehouses (requires `manage-warehouses`)
+- `GET /api/v1/warehouses` - List warehouses with pagination, sorting, and search (requires `manage-warehouses`)
+  - **Search**: Search by `search` parameter (searches name, code, city)
+  - **Filtering**: Filter by `is_active` to show active/inactive warehouses
+  - **Sorting**: Sort by `sort_by` and `sort_direction` parameters
+    - Allowed fields: id, name, code, city, phone, created_at, updated_at
+  - **Pagination**: Use `per_page` parameter for pagination
+  - **Response**: Returns paginated Laravel response with data and pagination metadata
 - `POST /api/v1/warehouses` - Create warehouse (requires `manage-warehouses`)
 - `GET /api/v1/warehouses/{id}` - Get warehouse details (requires `manage-warehouses`)
 - `PUT /api/v1/warehouses/{id}` - Update warehouse (requires `manage-warehouses`)
@@ -764,6 +779,7 @@ resources/
 │   │       ├── sales/        # Sales/POS with dialogs
 │   │       ├── settings/     # Settings
 │   │       ├── stock/        # Stock Ledger, Warehouses
+│   │       │   └── dialogs/ # Warehouse dialogs (WarehouseDialog, WarehouseViewDialog, WarehouseDeleteDialog)
 │   │       └── users/        # Users, Roles, Permissions
 │   ├── stores/               # Pinia stores (auth)
 │   ├── utils/                # Utility functions
@@ -850,6 +866,14 @@ public/
   - Improved date filtering in backend (using `filled()` and `whereDate()`)
   - Fixed route order for stock-ledger/warehouses endpoint
   - Enhanced date formatting utilities (formatDateShort, formatDateDDMMYYYYHHMM)
+- **Warehouse Management Enhancements** (Latest):
+  - **Modular Dialog Architecture**: Dialogs moved to separate folder (WarehouseDialog, WarehouseViewDialog, WarehouseDeleteDialog)
+  - **Compact Design**: Streamlined UI with density="compact", variant="outlined", and reduced padding
+  - **Pagination & Sorting**: Server-side pagination and sortable table headers following category component pattern
+  - **Advanced Search**: Real-time search with pagination reset
+  - **Sortable Columns**: Sort by name, code, city, and created date with visual indicators
+  - **Global Sortable Styles**: Sortable CSS moved to app.scss for consistency across all components
+  - **API Enhancements**: Backend now supports pagination, sorting, and search parameters
 
 ## 🛠️ Development
 

@@ -53,11 +53,54 @@ class CurrentProjectSeeder extends Seeder
             );
         }
 
-        // Warehouse
-        $warehouse = Warehouse::firstOrCreate(
-            ['code' => 'WH-001'],
-            ['name' => 'Main Warehouse', 'address' => 'Default Location']
-        );
+        // Warehouses
+        $warehousesData = [
+            [
+                'code' => 'WH-001',
+                'name' => 'Main Warehouse',
+                'address' => '123 Main Street, Business District',
+                'city' => 'Dhaka',
+                'state' => 'Dhaka',
+                'country' => 'Bangladesh',
+                'postal_code' => '1200',
+                'phone' => '01700001001',
+                'email' => 'warehouse1@sms.com',
+                'is_active' => true,
+            ],
+            [
+                'code' => 'WH-002',
+                'name' => 'Secondary Warehouse',
+                'address' => '456 Industrial Area, Port Zone',
+                'city' => 'Chittagong',
+                'state' => 'Chittagong',
+                'country' => 'Bangladesh',
+                'postal_code' => '4000',
+                'phone' => '01700001002',
+                'email' => 'warehouse2@sms.com',
+                'is_active' => true,
+            ],
+            [
+                'code' => 'WH-003',
+                'name' => 'Distribution Center',
+                'address' => '789 Commerce Road, Export Zone',
+                'city' => 'Dhaka',
+                'state' => 'Dhaka',
+                'country' => 'Bangladesh',
+                'postal_code' => '1212',
+                'phone' => '01700001003',
+                'email' => 'warehouse3@sms.com',
+                'is_active' => true,
+            ],
+        ];
+
+        $warehouses = [];
+        foreach ($warehousesData as $warehouseData) {
+            $warehouses[] = Warehouse::firstOrCreate(
+                ['code' => $warehouseData['code']],
+                $warehouseData
+            );
+        }
+        $warehouse = $warehouses[0]; // Use first warehouse for sample stock and sale
 
         // Suppliers
         $suppliersData = [

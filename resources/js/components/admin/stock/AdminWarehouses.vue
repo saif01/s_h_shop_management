@@ -9,285 +9,321 @@
                 <v-btn color="primary" prepend-icon="mdi-plus" @click="openDialog">Add Warehouse</v-btn>
             </v-card-title>
             <v-divider />
-            
             <v-card-text>
-                <v-text-field v-model="search" label="Search Warehouses" 
-                    prepend-inner-icon="mdi-magnify" clearable />
+                <v-text-field v-model="search" label="Search Warehouses" prepend-inner-icon="mdi-magnify"
+                    variant="outlined" density="compact" clearable @input="onSearch" />
             </v-card-text>
+        </v-card>
 
-            <v-data-table :headers="headers" :items="filteredWarehouses" :loading="loading" 
-                :items-per-page="15">
-                <template #item.is_active="{ item }">
-                    <v-chip :color="item.is_active ? 'success' : 'error'" size="small">
-                        {{ item.is_active ? 'Active' : 'Inactive' }}
-                    </v-chip>
-                </template>
-                <template #item.created_at="{ item }">
-                    {{ formatDate(item.created_at) }}
-                </template>
-                <template #item.actions="{ item }">
-                    <v-btn icon="mdi-eye" size="small" variant="text" @click="viewWarehouse(item)" />
-                    <v-btn icon="mdi-pencil" size="small" variant="text" @click="editWarehouse(item)" />
-                    <v-btn icon="mdi-delete" size="small" variant="text" color="error" @click="confirmDelete(item)" />
-                </template>
-            </v-data-table>
+        <!-- Warehouses Table -->
+        <v-card>
+            <v-card-title class="d-flex justify-space-between align-center">
+                <span>Warehouses</span>
+                <span class="text-caption text-grey">
+                    Total Records: <strong>{{ pagination.total || 0 }}</strong>
+                </span>
+            </v-card-title>
+            <v-card-text>
+                <v-table>
+                    <thead>
+                        <tr>
+                            <th class="sortable" @click="onSort('name')">
+                                <div class="sortable-header">
+                                    <span>Name</span>
+                                    <v-icon v-if="sortBy === 'name'" size="18" class="sort-icon active">
+                                        {{ sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
+                                    </v-icon>
+                                    <v-icon v-else size="18" class="sort-icon inactive">
+                                        mdi-unfold-more-horizontal
+                                    </v-icon>
+                                </div>
+                            </th>
+                            <th class="sortable" @click="onSort('code')">
+                                <div class="sortable-header">
+                                    <span>Code</span>
+                                    <v-icon v-if="sortBy === 'code'" size="18" class="sort-icon active">
+                                        {{ sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
+                                    </v-icon>
+                                    <v-icon v-else size="18" class="sort-icon inactive">
+                                        mdi-unfold-more-horizontal
+                                    </v-icon>
+                                </div>
+                            </th>
+                            <th class="sortable" @click="onSort('city')">
+                                <div class="sortable-header">
+                                    <span>City</span>
+                                    <v-icon v-if="sortBy === 'city'" size="18" class="sort-icon active">
+                                        {{ sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
+                                    </v-icon>
+                                    <v-icon v-else size="18" class="sort-icon inactive">
+                                        mdi-unfold-more-horizontal
+                                    </v-icon>
+                                </div>
+                            </th>
+                            <th>Phone</th>
+                            <th>Status</th>
+                            <th class="sortable" @click="onSort('created_at')">
+                                <div class="sortable-header">
+                                    <span>Created</span>
+                                    <v-icon v-if="sortBy === 'created_at'" size="18" class="sort-icon active">
+                                        {{ sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
+                                    </v-icon>
+                                    <v-icon v-else size="18" class="sort-icon inactive">
+                                        mdi-unfold-more-horizontal
+                                    </v-icon>
+                                </div>
+                            </th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Skeleton Loaders -->
+                        <tr v-if="loading" v-for="n in 5" :key="`skeleton-${n}`">
+                            <td><v-skeleton-loader type="text" width="150"></v-skeleton-loader></td>
+                            <td><v-skeleton-loader type="text" width="120"></v-skeleton-loader></td>
+                            <td><v-skeleton-loader type="text" width="100"></v-skeleton-loader></td>
+                            <td><v-skeleton-loader type="text" width="100"></v-skeleton-loader></td>
+                            <td><v-skeleton-loader type="chip" width="80" height="24"></v-skeleton-loader></td>
+                            <td><v-skeleton-loader type="text" width="100"></v-skeleton-loader></td>
+                            <td>
+                                <div class="d-flex">
+                                    <v-skeleton-loader type="button" width="32" height="32"
+                                        class="mr-1"></v-skeleton-loader>
+                                    <v-skeleton-loader type="button" width="32" height="32"
+                                        class="mr-1"></v-skeleton-loader>
+                                    <v-skeleton-loader type="button" width="32" height="32"></v-skeleton-loader>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- Actual Warehouse Data -->
+                        <template v-else>
+                            <tr v-for="warehouse in warehouses" :key="warehouse.id">
+                                <td>{{ warehouse.name }}</td>
+                                <td>
+                                    <v-chip size="small" variant="outlined" v-if="warehouse.code">{{ warehouse.code
+                                    }}</v-chip>
+                                    <span v-else class="text-caption text-grey">-</span>
+                                </td>
+                                <td>{{ warehouse.city || '-' }}</td>
+                                <td>{{ warehouse.phone || '-' }}</td>
+                                <td>
+                                    <v-chip :color="warehouse.is_active ? 'success' : 'error'" size="small">
+                                        {{ warehouse.is_active ? 'Active' : 'Inactive' }}
+                                    </v-chip>
+                                </td>
+                                <td>{{ formatDate(warehouse.created_at) }}</td>
+                                <td>
+                                    <v-btn size="small" icon="mdi-eye" @click="viewWarehouse(warehouse)" variant="text"
+                                        color="info" :title="'View Warehouse Details'"></v-btn>
+                                    <v-btn size="small" icon="mdi-pencil" @click="editWarehouse(warehouse)"
+                                        variant="text" :title="'Edit Warehouse'"></v-btn>
+                                    <v-btn size="small" icon="mdi-delete" @click="confirmDelete(warehouse)"
+                                        variant="text" color="error" :title="'Delete Warehouse'"></v-btn>
+                                </td>
+                            </tr>
+                            <tr v-if="warehouses.length === 0">
+                                <td colspan="7" class="text-center py-4">No warehouses found</td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </v-table>
+
+                <!-- Pagination -->
+                <div
+                    class="d-flex flex-column flex-md-row justify-space-between align-center align-md-start gap-3 mt-4">
+                    <!-- Left: Records Info -->
+                    <div class="text-caption text-grey">
+                        <span v-if="warehouses.length > 0 && pagination.total > 0">
+                            <span v-if="perPage === 'all'">
+                                Showing <strong>all {{ pagination.total.toLocaleString() }}</strong> records
+                            </span>
+                            <span v-else>
+                                Showing <strong>{{ ((currentPage - 1) * perPage) + 1 }}</strong> to
+                                <strong>{{ Math.min(currentPage * perPage, pagination.total) }}</strong> of
+                                <strong>{{ pagination.total.toLocaleString() }}</strong> records
+                            </span>
+                        </span>
+                        <span v-else>No records found</span>
+                    </div>
+
+                    <!-- Right: Items Per Page and Pagination -->
+                    <PaginationControls v-model="currentPage" :pagination="pagination" :per-page-value="perPage"
+                        :per-page-options="perPageOptions" @update:per-page="onPerPageUpdate"
+                        @page-change="onPageChange" />
+                </div>
+            </v-card-text>
         </v-card>
 
         <!-- Warehouse Dialog -->
-        <v-dialog v-model="dialog" max-width="700px" persistent>
-            <v-card>
-                <v-card-title class="d-flex justify-space-between align-center">
-                    <span>{{ isEdit ? 'Edit Warehouse' : 'Add Warehouse' }}</span>
-                    <v-btn icon="mdi-close" variant="text" @click="closeDialog" />
-                </v-card-title>
-                <v-divider />
-                <v-card-text>
-                    <v-form ref="formRef" v-model="formValid">
-                        <v-row dense>
-                            <v-col cols="12" sm="8">
-                                <v-text-field v-model="form.name" label="Warehouse Name *" 
-                                    :rules="[rules.required]" />
-                            </v-col>
-                            <v-col cols="12" sm="4">
-                                <v-switch v-model="form.is_active" label="Active" color="primary" />
-                            </v-col>
-                            <v-col cols="12">
-                                <v-text-field v-model="form.code" label="Warehouse Code" 
-                                    hint="Unique identifier" />
-                            </v-col>
-                            <v-col cols="12" sm="6">
-                                <v-text-field v-model="form.phone" label="Phone" />
-                            </v-col>
-                            <v-col cols="12" sm="6">
-                                <v-text-field v-model="form.email" label="Email" type="email" />
-                            </v-col>
-                            <v-col cols="12">
-                                <v-textarea v-model="form.address" label="Address" rows="2" />
-                            </v-col>
-                            <v-col cols="12" sm="4">
-                                <v-text-field v-model="form.city" label="City" />
-                            </v-col>
-                            <v-col cols="12" sm="4">
-                                <v-text-field v-model="form.state" label="State/Province" />
-                            </v-col>
-                            <v-col cols="12" sm="4">
-                                <v-text-field v-model="form.postal_code" label="Postal Code" />
-                            </v-col>
-                            <v-col cols="12">
-                                <v-text-field v-model="form.country" label="Country" />
-                            </v-col>
-                        </v-row>
-                    </v-form>
-                </v-card-text>
-                <v-divider />
-                <v-card-actions class="justify-end">
-                    <v-btn variant="text" @click="closeDialog">Cancel</v-btn>
-                    <v-btn color="primary" :loading="saving" @click="save">
-                        {{ isEdit ? 'Update' : 'Save' }}
-                    </v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
+        <WarehouseDialog v-model="dialog" :warehouse="selectedWarehouse" :saving="saving" @save="handleSave" />
 
         <!-- View Warehouse Dialog -->
-        <v-dialog v-model="viewDialog" max-width="600px">
-            <v-card v-if="selectedWarehouse">
-                <v-card-title class="d-flex justify-space-between align-center bg-primary">
-                    <span class="text-white">Warehouse Details</span>
-                    <v-btn icon="mdi-close" variant="text" class="text-white" @click="viewDialog = false" />
-                </v-card-title>
-                <v-card-text class="pa-4">
-                    <v-list density="compact">
-                        <v-list-item>
-                            <v-list-item-title class="font-weight-bold">Name</v-list-item-title>
-                            <v-list-item-subtitle>{{ selectedWarehouse.name }}</v-list-item-subtitle>
-                        </v-list-item>
-                        <v-list-item v-if="selectedWarehouse.code">
-                            <v-list-item-title class="font-weight-bold">Code</v-list-item-title>
-                            <v-list-item-subtitle>{{ selectedWarehouse.code }}</v-list-item-subtitle>
-                        </v-list-item>
-                        <v-list-item v-if="selectedWarehouse.phone">
-                            <v-list-item-title class="font-weight-bold">Phone</v-list-item-title>
-                            <v-list-item-subtitle>{{ selectedWarehouse.phone }}</v-list-item-subtitle>
-                        </v-list-item>
-                        <v-list-item v-if="selectedWarehouse.email">
-                            <v-list-item-title class="font-weight-bold">Email</v-list-item-title>
-                            <v-list-item-subtitle>{{ selectedWarehouse.email }}</v-list-item-subtitle>
-                        </v-list-item>
-                        <v-list-item v-if="selectedWarehouse.address">
-                            <v-list-item-title class="font-weight-bold">Address</v-list-item-title>
-                            <v-list-item-subtitle>
-                                {{ selectedWarehouse.address }}<br>
-                                {{ selectedWarehouse.city }}, {{ selectedWarehouse.state }} {{ selectedWarehouse.postal_code }}<br>
-                                {{ selectedWarehouse.country }}
-                            </v-list-item-subtitle>
-                        </v-list-item>
-                        <v-list-item>
-                            <v-list-item-title class="font-weight-bold">Status</v-list-item-title>
-                            <v-list-item-subtitle>
-                                <v-chip :color="selectedWarehouse.is_active ? 'success' : 'error'" size="small">
-                                    {{ selectedWarehouse.is_active ? 'Active' : 'Inactive' }}
-                                </v-chip>
-                            </v-list-item-subtitle>
-                        </v-list-item>
-                    </v-list>
-                </v-card-text>
-            </v-card>
-        </v-dialog>
+        <WarehouseViewDialog v-model="viewDialog" :warehouse="selectedWarehouse" />
 
         <!-- Delete Confirmation -->
-        <v-dialog v-model="deleteDialog" max-width="400">
-            <v-card>
-                <v-card-title>Confirm Delete</v-card-title>
-                <v-card-text>Are you sure you want to delete this warehouse?</v-card-text>
-                <v-card-actions>
-                    <v-spacer />
-                    <v-btn @click="deleteDialog = false">Cancel</v-btn>
-                    <v-btn color="error" :loading="deleting" @click="deleteWarehouse">Delete</v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
+        <WarehouseDeleteDialog v-model="deleteDialog" :warehouse="selectedWarehouse" :deleting="deleting"
+            @confirm="deleteWarehouse" />
     </v-container>
 </template>
 
 <script>
 import axios from '@/utils/axios.config';
+import commonMixin from '../../../mixins/commonMixin';
+import PaginationControls from '../../common/PaginationControls.vue';
+import { defaultPaginationState, paginationUtils } from '../../../utils/pagination.js';
+import WarehouseDialog from './dialogs/WarehouseDialog.vue';
+import WarehouseViewDialog from './dialogs/WarehouseViewDialog.vue';
+import WarehouseDeleteDialog from './dialogs/WarehouseDeleteDialog.vue';
 
 export default {
     name: 'AdminWarehouses',
+    components: {
+        PaginationControls,
+        WarehouseDialog,
+        WarehouseViewDialog,
+        WarehouseDeleteDialog,
+    },
+    mixins: [commonMixin],
     data() {
         return {
             warehouses: [],
-            search: '',
-            loading: false,
             dialog: false,
             viewDialog: false,
             deleteDialog: false,
             saving: false,
             deleting: false,
-            formValid: false,
-            form: this.getEmptyForm(),
             selectedWarehouse: null,
-            headers: [
-                { title: 'Name', key: 'name' },
-                { title: 'Code', key: 'code' },
-                { title: 'City', key: 'city' },
-                { title: 'Phone', key: 'phone' },
-                { title: 'Status', key: 'is_active' },
-                { title: 'Created', key: 'created_at' },
-                { title: 'Actions', key: 'actions', sortable: false, align: 'center' },
-            ],
-            rules: {
-                required: v => !!v || 'Required',
-            },
+            // Pagination state - using centralized defaults
+            currentPage: defaultPaginationState.currentPage,
+            perPage: defaultPaginationState.perPage,
+            perPageOptions: defaultPaginationState.perPageOptions,
+            pagination: { ...defaultPaginationState.pagination },
         };
     },
-    computed: {
-        filteredWarehouses() {
-            if (!this.search) return this.warehouses;
-            const searchLower = this.search.toLowerCase();
-            return this.warehouses.filter(warehouse => 
-                warehouse.name?.toLowerCase().includes(searchLower) ||
-                warehouse.code?.toLowerCase().includes(searchLower) ||
-                warehouse.city?.toLowerCase().includes(searchLower)
-            );
-        },
-        isEdit() {
-            return !!this.form.id;
-        },
-    },
-    mounted() {
-        this.fetchWarehouses();
+    async mounted() {
+        await this.loadWarehouses();
     },
     methods: {
-        getEmptyForm() {
-            return {
-                id: null,
-                name: '',
-                code: '',
-                phone: '',
-                email: '',
-                address: '',
-                city: '',
-                state: '',
-                postal_code: '',
-                country: '',
-                is_active: true,
-            };
-        },
-        async fetchWarehouses() {
-            this.loading = true;
+        async loadWarehouses() {
             try {
-                const { data } = await axios.get('/api/v1/warehouses');
-                this.warehouses = data.data || data.warehouses || [];
+                this.loading = true;
+                const params = this.buildPaginationParams();
+
+                // Handle "Show All" option
+                if (this.perPage === 'all') {
+                    params.per_page = 999999; // Very large number to get all records
+                }
+
+                if (this.search) {
+                    params.search = this.search;
+                }
+
+                const response = await axios.get('/api/v1/warehouses', { params });
+
+                // Laravel paginate() returns data in 'data' property
+                this.warehouses = response.data.data || [];
+
+                // Update pagination from response
+                this.updatePagination(response.data);
             } catch (error) {
-                console.error('Failed to fetch warehouses', error);
-                this.$toast?.error('Failed to load warehouses');
+                this.handleApiError(error, 'Failed to load warehouses');
             } finally {
                 this.loading = false;
             }
         },
         openDialog() {
-            this.form = this.getEmptyForm();
+            this.selectedWarehouse = null;
             this.dialog = true;
         },
         editWarehouse(warehouse) {
-            this.form = { ...warehouse };
+            this.selectedWarehouse = warehouse;
             this.dialog = true;
         },
         viewWarehouse(warehouse) {
             this.selectedWarehouse = warehouse;
             this.viewDialog = true;
         },
-        closeDialog() {
-            this.dialog = false;
-            this.form = this.getEmptyForm();
-        },
-        async save() {
-            const valid = await this.$refs.formRef.validate();
-            if (!valid.valid) return;
-
+        async handleSave(formData) {
             this.saving = true;
             try {
-                if (this.isEdit) {
-                    await axios.put(`/api/v1/warehouses/${this.form.id}`, this.form);
-                    this.$toast?.success('Warehouse updated successfully');
+                if (formData.id) {
+                    await axios.put(`/api/v1/warehouses/${formData.id}`, formData);
+                    this.showSuccess('Warehouse updated successfully');
                 } else {
-                    await axios.post('/api/v1/warehouses', this.form);
-                    this.$toast?.success('Warehouse created successfully');
+                    await axios.post('/api/v1/warehouses', formData);
+                    this.showSuccess('Warehouse created successfully');
                 }
-                this.closeDialog();
-                this.fetchWarehouses();
+                this.dialog = false;
+                this.selectedWarehouse = null;
+                await this.loadWarehouses();
             } catch (error) {
-                console.error('Failed to save warehouse', error);
-                this.$toast?.error('Failed to save warehouse');
+                this.handleApiError(error, 'Failed to save warehouse');
             } finally {
                 this.saving = false;
             }
         },
         confirmDelete(warehouse) {
-            this.form = warehouse;
+            this.selectedWarehouse = warehouse;
             this.deleteDialog = true;
         },
         async deleteWarehouse() {
+            if (!this.selectedWarehouse?.id) return;
+
             this.deleting = true;
             try {
-                await axios.delete(`/api/v1/warehouses/${this.form.id}`);
-                this.$toast?.success('Warehouse deleted successfully');
+                await axios.delete(`/api/v1/warehouses/${this.selectedWarehouse.id}`);
+                this.showSuccess('Warehouse deleted successfully');
                 this.deleteDialog = false;
-                this.fetchWarehouses();
+                this.selectedWarehouse = null;
+                await this.loadWarehouses();
             } catch (error) {
-                console.error('Failed to delete warehouse', error);
-                this.$toast?.error('Failed to delete warehouse');
+                this.handleApiError(error, 'Failed to delete warehouse');
             } finally {
                 this.deleting = false;
             }
         },
-        formatDate(date) {
-            if (!date) return '';
-            return new Date(date).toLocaleDateString();
+        buildPaginationParams(additionalParams = {}) {
+            return paginationUtils.buildPaginationParams(
+                this.currentPage,
+                this.perPage,
+                additionalParams,
+                this.sortBy,
+                this.sortDirection
+            );
+        },
+        updatePagination(responseData) {
+            paginationUtils.updatePagination(this, responseData);
+        },
+        resetPagination() {
+            paginationUtils.resetPagination(this);
+        },
+        onPerPageChange() {
+            this.resetPagination();
+            this.loadWarehouses();
+        },
+        onPerPageUpdate(value) {
+            this.perPage = value;
+            this.onPerPageChange();
+        },
+        onPageChange(page) {
+            this.currentPage = page;
+            this.loadWarehouses();
+        },
+        onSort(field) {
+            this.handleSort(field);
+            this.currentPage = 1; // Reset to first page when sorting changes
+            this.loadWarehouses();
+        },
+        onSearch() {
+            this.resetPagination();
+            this.loadWarehouses();
         },
     },
 };
 </script>
 
+<style scoped>
+.gap-2 {
+    gap: 8px;
+}
+</style>

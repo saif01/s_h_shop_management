@@ -182,8 +182,8 @@ table {
 .sortable-header {
     display: flex;
     align-items: center;
-    gap: 6px;
-    justify-content: flex-start;
+    justify-content: space-between;
+    gap: 8px;
     width: 100%;
 }
 

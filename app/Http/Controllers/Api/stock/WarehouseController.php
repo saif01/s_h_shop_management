@@ -16,6 +16,7 @@ class WarehouseController extends Controller
     {
         $query = Warehouse::query();
 
+        // Search functionality
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -25,16 +26,31 @@ class WarehouseController extends Controller
             });
         }
 
+        // Filter by active status
         if ($request->has('is_active')) {
             $query->where('is_active', $request->is_active);
         }
 
-        $warehouses = $query->orderBy('name')->get();
+        // Sorting
+        $sortBy = $request->get('sort_by', 'name');
+        $sortDirection = $request->get('sort_direction', 'asc');
+        
+        $allowedSortFields = ['id', 'name', 'code', 'city', 'phone', 'created_at', 'updated_at'];
+        if (!in_array($sortBy, $allowedSortFields)) {
+            $sortBy = 'name';
+        }
+        
+        if (!in_array($sortDirection, ['asc', 'desc'])) {
+            $sortDirection = 'asc';
+        }
+        
+        $query->orderBy($sortBy, $sortDirection);
 
-        return response()->json([
-            'warehouses' => $warehouses,
-            'data' => $warehouses,
-        ]);
+        // Pagination
+        $perPage = $request->get('per_page', 10);
+        $warehouses = $query->paginate($perPage);
+
+        return response()->json($warehouses);
     }
 
     /**
