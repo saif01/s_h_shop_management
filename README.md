@@ -268,12 +268,100 @@ npm run build
   - Contact information
   - Payment terms
   - Active/Inactive status
-- **Purchase Entry**: Create purchase orders with:
-  - Purchase date and due date
-  - Supplier selection
-  - Multiple product items with quantity and purchase price
-  - Payment tracking (paid/due amounts)
-  - Invoice status (draft, pending, partial, paid, cancelled)
+- **Purchase Management Interface**: ✅ **Enhanced purchase list with advanced features**:
+  - **Advanced Filtering**:
+    - Status filtering (draft, pending, partial, paid, cancelled)
+    - Supplier filtering - filter purchases by specific supplier
+    - Warehouse filtering - filter purchases by warehouse
+    - Search by invoice number or notes
+  - **Sortable Columns**: Sort by invoice number, invoice date, status, total amount, or created date
+  - **Pagination**: 
+    - Customizable page sizes (10, 25, 50, 100, 500)
+    - "Show All" option to display all records
+    - Total records display
+  - **Purchase Actions**:
+    - View purchase details in dedicated view dialog
+    - Edit existing purchases (draft only)
+    - Delete purchases (draft only)
+    - Receive stock for draft purchases
+    - Record payments for purchases
+    - Print purchase invoices (placeholder ready)
+  - **Purchase Display**:
+    - Supplier information
+    - Warehouse information
+    - Invoice date with DD/MM/YYYY format
+    - Total, paid, and balance amounts with currency formatting
+    - Color-coded balance amounts (red for outstanding, green for paid)
+    - Status chips with color coding
+- **Purchase Entry**: ✅ **Comprehensive purchase invoice creation with tabbed interface**:
+  - **Basic Information Tab**:
+    - Supplier selection (required)
+    - Warehouse selection (required)
+    - GRN (Goods Receipt Note) selection - optional
+    - Invoice date (required) with DatePicker
+    - Due date (optional) with DatePicker
+    - Shipping cost
+    - Notes field
+  - **Items Tab**:
+    - Add multiple product items
+    - Product selection with search
+    - Quantity input with validation
+    - Unit price input
+    - Item-level discount
+    - Item-level tax
+    - Automatic total calculation per item
+    - Real-time subtotal, tax, discount, and grand total calculations
+    - Remove item functionality
+  - **Invoice Calculations**:
+    - Automatic subtotal calculation (sum of quantity × unit_price)
+    - Automatic tax calculation (sum of item taxes)
+    - Automatic discount calculation (sum of item discounts)
+    - Grand total: subtotal + tax + shipping - discount
+  - **Save Options**:
+    - Save as Draft: Creates purchase without updating stock
+    - Create Purchase: Creates purchase and updates stock (if not draft)
+- **Stock Receiving**: ✅ **Receive stock for draft purchases**:
+  - Only draft purchases can be received
+  - Automatically updates stock quantities in warehouse
+  - Creates stock ledger entries for all items
+  - Calculates weighted average cost
+  - Updates purchase status based on payment (pending/partial/paid)
+  - Comprehensive error handling and logging
+  - Stock verification after update
+- **Purchase Status Workflow**:
+  - **Draft**: Initial state, stock not updated, can be edited/deleted
+  - **Pending**: Stock received, no payment made
+  - **Partial**: Stock received, partial payment made
+  - **Paid**: Stock received, fully paid
+  - **Cancelled**: Purchase cancelled (placeholder ready)
+- **Payment Management**: ✅ **Record payments for purchases**:
+  - Payment dialog for recording purchase payments
+  - Payment amount input
+  - Payment method selection
+  - Payment date
+  - Automatic balance calculation
+  - Updates purchase status based on payment
+- **Purchase View Dialog**: ✅ **Detailed purchase information display**:
+  - Complete purchase details
+  - Supplier information
+  - Warehouse information
+  - All items with product details
+  - Payment summary
+  - Status information
+  - Created/Updated by tracking
+- **Purchase Editing**: ✅ **Edit draft purchases**:
+  - Only draft purchases can be edited
+  - Update supplier, warehouse, dates
+  - Add/remove/edit items
+  - Recalculate totals
+  - Maintains data integrity
+- **Stock Integration**: ✅ **Automatic stock management**:
+  - Stock updated when purchase is created (non-draft) or received
+  - Stock ledger entries created automatically
+  - Weighted average cost calculation
+  - Value tracking (value_before, value_after)
+  - Balance after transaction tracking
+  - Multi-warehouse support
 - **Purchase Return**: Handle purchase returns (placeholder ready)
 - **Supplier Ledger**: Track supplier balances and payment history
 
@@ -575,11 +663,47 @@ All admin endpoints require authentication via Bearer token and appropriate perm
   - Reverses stock ledger entries (stock in)
 
 **Purchase Management:**
-- `GET /api/v1/purchases` - List purchases (requires `view-purchases`)
-- `POST /api/v1/purchases` - Create purchase with items (requires `create-purchases`)
-- `GET /api/v1/purchases/{id}` - Get purchase details (requires `view-purchases`)
+- `GET /api/v1/purchases` - List purchases with advanced filtering, sorting, and pagination (requires `view-purchases`)
+  - **Filtering**:
+    - Filter by `supplier_id` to show purchases for specific supplier
+    - Filter by `warehouse_id` to show purchases for specific warehouse
+    - Filter by `status` (draft, pending, partial, paid, cancelled)
+    - Search by `search` parameter (searches invoice number or notes)
+  - **Sorting**: Sort by `sort_by` and `sort_direction` parameters
+    - Allowed fields: id, invoice_number, invoice_date, due_date, status, total_amount, created_at
+    - Default: sorted by invoice_date (desc)
+  - **Pagination**: Use `per_page` parameter (default: 10)
+  - **Response**: Includes supplier, warehouse, items with product details, and payment information
+- `POST /api/v1/purchases` - Create new purchase with items (requires `create-purchases`)
+  - Request body includes: supplier_id, warehouse_id, invoice_date, due_date, items array, shipping_cost, notes, etc.
+  - Automatically creates stock ledger entries and updates stock (if status is not draft)
+  - Calculates totals (subtotal, tax, discount, total_amount)
+  - Creates payment record if paid_amount > 0
+  - Returns created purchase with all relationships
+- `GET /api/v1/purchases/{id}` - Get purchase details with items and relationships (requires `view-purchases`)
+  - Includes supplier, warehouse, items with full product information, and payment details
 - `PUT /api/v1/purchases/{id}` - Update purchase (requires `edit-purchases`)
+  - Only draft purchases can be updated
+  - Updates purchase and recalculates totals
+  - Updates stock and stock ledger if purchase was previously received
+  - Handles warehouse changes with stock reversal and re-creation
 - `DELETE /api/v1/purchases/{id}` - Delete purchase (requires `delete-purchases`)
+  - Only draft purchases can be deleted
+  - Deletes purchase and related items
+  - Reverses stock ledger entries if they exist
+  - Deletes related payment records
+- `POST /api/v1/purchases/{purchase}/receive` - ✅ **Receive stock for draft purchase** (requires `create-purchases`)
+  - Only draft purchases can be received
+  - Validates purchase has items
+  - Updates stock quantities in warehouse for all items
+  - Creates stock ledger entries with:
+    - Product and warehouse information
+    - Quantity, unit cost, weighted average cost
+    - Balance after, value before, value after
+    - Transaction date and reference information
+  - Updates purchase status based on payment (pending/partial/paid)
+  - Comprehensive error handling and logging
+  - Stock verification after update
 
 **Product Management:**
 - `GET /api/v1/products` - List products with advanced search, filtering, and sorting (requires `view-products`)
@@ -874,6 +998,21 @@ public/
   - **Sortable Columns**: Sort by name, code, city, and created date with visual indicators
   - **Global Sortable Styles**: Sortable CSS moved to app.scss for consistency across all components
   - **API Enhancements**: Backend now supports pagination, sorting, and search parameters
+- **Purchase Management Enhancements** (Latest):
+  - **Enhanced Purchase List**: Advanced filtering, sorting, and pagination with status, supplier, and warehouse filters
+  - **Tabbed Purchase Dialog**: Two-tab interface (Basic Information and Items) for better organization
+  - **Stock Receiving Feature**: Receive stock for draft purchases with automatic stock ledger entry creation
+  - **Stock Integration**: Automatic stock updates with weighted average cost calculation
+  - **Payment Management**: Payment dialog for recording purchase payments
+  - **Purchase View Dialog**: Detailed purchase information display with all items and payment summary
+  - **Status Workflow**: Complete status management (draft → pending → partial → paid)
+  - **Error Handling**: Comprehensive error handling and logging for stock operations
+  - **Stock Verification**: Post-update verification to ensure stock was saved correctly
+  - **Real-time Calculations**: Automatic subtotal, tax, discount, and grand total calculations
+  - **GRN Support**: Optional Goods Receipt Note (GRN) selection
+  - **Date Pickers**: DatePicker components for invoice date and due date
+  - **Sortable Columns**: Sort purchases by invoice number, date, status, and total amount
+  - **Pagination**: Customizable page sizes with "Show All" option
 
 ## 🛠️ Development
 
