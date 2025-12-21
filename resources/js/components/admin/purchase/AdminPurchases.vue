@@ -318,13 +318,20 @@ export default {
                     params: { per_page: 1000, is_active: true },
                     headers: this.getAuthHeaders()
                 });
-                this.products = response.data.data || [];
-                this.productOptions = this.products.map(p => ({
-                    label: `${p.name} (${p.sku})`,
-                    value: p.id
-                }));
+                // Handle both paginated and non-paginated responses
+                const productsList = response.data.data || response.data || [];
+                this.products = productsList;
+                this.productOptions = productsList
+                    .filter(p => p && p.id && p.name) // Filter out invalid products
+                    .map(p => ({
+                        label: p.sku ? `${p.name} (${p.sku})` : (p.name || 'Unknown Product'),
+                        value: p.id
+                    }));
+                console.log('Products loaded:', this.productOptions.length, 'options');
             } catch (error) {
                 console.error('Error loading products:', error);
+                this.productOptions = [];
+                this.products = [];
             }
         },
         openDialog(purchase) {

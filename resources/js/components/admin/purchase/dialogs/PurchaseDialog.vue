@@ -318,6 +318,8 @@ export default {
                 // Ensure productOptions are reactive
                 if (newVal && Array.isArray(newVal) && newVal.length > 0) {
                     console.log('ProductOptions updated:', newVal.length, 'products');
+                } else {
+                    console.warn('ProductOptions issue:', newVal);
                 }
             },
             immediate: true
