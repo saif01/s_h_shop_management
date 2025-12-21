@@ -64,7 +64,7 @@
                         <div class="d-flex align-center">
                             <v-icon color="purple" size="40" class="mr-3">mdi-database</v-icon>
                             <div>
-                                <div class="text-h6">{{ pagination.total || 0 }}</div>
+                                <div class="text-h6">{{ (pagination.total || 0).toLocaleString() }}</div>
                                 <div class="text-caption text-grey">Total Records</div>
                             </div>
                         </div>
@@ -95,7 +95,7 @@
             <v-card-title class="d-flex justify-space-between align-center">
                 <span>Login Logs</span>
                 <span class="text-caption text-grey">
-                    Total Records: <strong>{{ pagination.total || 0 }}</strong>
+                    Total Records: <strong>{{ (pagination.total || 0).toLocaleString() }}</strong>
                 </span>
             </v-card-title>
             <v-card-text>
@@ -238,7 +238,7 @@
                             </span>
                             <span v-else>
                                 Showing <strong>{{ ((currentPage - 1) * perPage) + 1 }}</strong> to
-                                <strong>{{ Math.min(currentPage * perPage, pagination.total) }}</strong> of
+                                <strong>{{ Math.min(currentPage * perPage, pagination.total).toLocaleString() }}</strong> of
                                 <strong>{{ pagination.total.toLocaleString() }}</strong> records
                             </span>
                         </span>

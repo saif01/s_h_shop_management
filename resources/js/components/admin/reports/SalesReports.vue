@@ -75,10 +75,10 @@
                         Export PDF
                     </v-btn>
                     <span class="text-caption text-grey">
-                        Total Records: <strong>{{ pagination.total || 0 }}</strong>
+                        Total Records: <strong>{{ (pagination.total || 0).toLocaleString() }}</strong>
                         <span v-if="reportData.length > 0">
                             | Showing {{ ((currentPage - 1) * perPage) + 1 }} to {{ Math.min(currentPage * perPage,
-                                pagination.total) }} of {{ pagination.total }}
+                                pagination.total).toLocaleString() }} of {{ pagination.total.toLocaleString() }}
                         </span>
                     </span>
                 </div>
@@ -215,7 +215,7 @@
                             </span>
                             <span v-else>
                                 Showing <strong>{{ ((currentPage - 1) * perPage) + 1 }}</strong> to
-                                <strong>{{ Math.min(currentPage * perPage, pagination.total) }}</strong> of
+                                <strong>{{ Math.min(currentPage * perPage, pagination.total).toLocaleString() }}</strong> of
                                 <strong>{{ pagination.total.toLocaleString() }}</strong> records
                             </span>
                         </span>
