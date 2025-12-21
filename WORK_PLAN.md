@@ -1,371 +1,274 @@
-# Shop Management System - Complete Work Plan
+# Shop Management System - User Guide
 
-A comprehensive, step-by-step guide to understanding and working with the Shop Management System (SMS).
+A simple, step-by-step guide for using the Shop Management System (SMS) in your daily business operations.
 
 ---
 
 ## 📋 Table of Contents
 
-1. [Project Overview](#1-project-overview)
-2. [Initial Setup & Installation](#2-initial-setup--installation)
-3. [Daily Operations Workflows](#3-daily-operations-workflows)
+1. [System Overview](#1-system-overview)
+2. [Getting Started](#2-getting-started)
+3. [Daily Operations](#3-daily-operations)
 4. [Administrative Tasks](#4-administrative-tasks)
-5. [Reporting & Analytics](#5-reporting--analytics)
-6. [Development Workflows](#6-development-workflows)
-7. [Maintenance & Troubleshooting](#7-maintenance--troubleshooting)
-8. [Quick Reference Guides](#8-quick-reference-guides)
+5. [Reports & Analytics](#5-reports--analytics)
+6. [Troubleshooting](#6-troubleshooting)
+7. [Quick Reference](#7-quick-reference)
 
 ---
 
-## 1. Project Overview
+## 1. System Overview
 
 ### 1.1 What is This System?
 
-The Shop Management System (SMS) is a comprehensive business management solution that handles:
-- **Inventory/Stock Management** - Track products across multiple warehouses
-- **Sales/POS** - Point of sale system for customer transactions
-- **Purchase Management** - Handle supplier purchases and stock receiving
-- **Customer & Supplier Management** - Manage business relationships
-- **Financial Tracking** - Track dues, payments, and profits
-- **Reports & Analytics** - Generate business insights
+The Shop Management System helps you manage your entire business in one place:
 
-### 1.2 Key Technologies
+- **Inventory Management** - Keep track of all your products and stock levels
+- **Sales/POS** - Process customer sales quickly and efficiently
+- **Purchase Management** - Record purchases from suppliers
+- **Customer & Supplier Management** - Maintain contact information and payment records
+- **Financial Tracking** - Monitor money owed by customers and to suppliers
+- **Reports & Analytics** - Get insights about your business performance
 
-- **Backend**: Laravel 12 (PHP 8.2+)
-- **Frontend**: Vue.js 3 + Vuetify 3
-- **Database**: MySQL/PostgreSQL/SQLite
-- **API**: RESTful API with Laravel Sanctum authentication
-- **Currency**: BDT (Bangladeshi Taka - ৳)
+### 1.2 User Roles
 
-### 1.3 User Roles
+The system has three main user types:
 
-1. **Administrator/Owner** - Full system access
-2. **Cashier** - Sales, customers, limited reports
-3. **Storekeeper** - Stock, purchases, products
+1. **Administrator/Owner** - Can access everything in the system
+2. **Cashier** - Can process sales, manage customers, and view reports
+3. **Storekeeper** - Can manage products, stock, and purchases
 
 ---
 
-## 2. Initial Setup & Installation
+## 2. Getting Started
 
-### Step 1: Prerequisites Installation
+### 2.1 Initial Setup for New Shop
 
-```bash
-# Required Software
-- PHP 8.2 or higher
-- Composer (PHP dependency manager)
-- Node.js 18+ and npm
-- MySQL/PostgreSQL database server
-- Git (for version control)
-```
-
-### Step 2: Clone and Install Dependencies
-
-```bash
-# 1. Clone the repository
-git clone <repository-url>
-cd s_h_sms
-
-# 2. Install PHP dependencies
-composer install
-
-# 3. Install JavaScript dependencies
-npm install
-```
-
-### Step 3: Environment Configuration
-
-```bash
-# 1. Copy environment file
-cp .env.example .env
-
-# 2. Generate application key
-php artisan key:generate
-
-# 3. Edit .env file with your settings
-# Required settings:
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=shop_management
-DB_USERNAME=root
-DB_PASSWORD=
-
-APP_URL=http://localhost:8000
-```
-
-### Step 4: Database Setup
-
-```bash
-# 1. Create database
-# (Use phpMyAdmin, MySQL Workbench, or command line)
-
-# 2. Run migrations
-php artisan migrate
-
-# 3. Seed initial data (roles, permissions, demo users)
-php artisan db:seed
-```
-
-### Step 5: Build Frontend Assets
-
-```bash
-# Development mode (with hot reload)
-npm run dev
-
-# Production build
-npm run build
-```
-
-### Step 6: Start Development Server
-
-```bash
-# Terminal 1: Start Laravel server
-php artisan serve
-
-# Terminal 2: Start Vite dev server (for development)
-npm run dev
-```
-
-### Step 7: Access the Application
-
-- **Admin Panel**: `http://localhost:8000/admin/login`
-- **Default Credentials**:
-  - **Admin**: admin@mail.com / password
-  - **Cashier**: cashier@mail.com / password
-  - **Storekeeper**: storekeeper@mail.com / password
-
-⚠️ **Important**: Change default passwords immediately in production!
-
----
-
-## 3. Daily Operations Workflows
-
-### 3.1 Initial Setup for New Shop
+When you first start using the system, follow these steps in order:
 
 #### Step 1: Configure Settings
-1. Navigate to **Settings** (⚙️ Settings in sidebar)
-2. Set up:
-   - Site name and contact information
-   - Upload logo and branding
-   - Configure email/SMTP (optional)
+1. Click on **Settings** (⚙️ icon in the sidebar)
+2. Enter your shop name and contact information
+3. Upload your shop logo (optional)
+4. Save the settings
 
 #### Step 2: Create Warehouses
 1. Go to **Stock Management → Warehouses**
 2. Click **Add Warehouse**
-3. Fill in:
-   - Name and Code (e.g., "Main Warehouse", "WH-001")
+3. Enter:
+   - Warehouse name (e.g., "Main Warehouse")
+   - Warehouse code (e.g., "WH-001")
    - Address and contact details
-   - Manager (select from users)
-   - Status (Active)
-4. Save
+   - Select a manager from the user list
+4. Click **Save**
 
-#### Step 3: Create Categories
+#### Step 3: Create Product Categories
 1. Go to **Inventory → Categories**
 2. Click **Add Category**
-3. Enter category name (e.g., "Grocery", "Electronics")
-4. Optionally add image and description
-5. Save
+3. Enter category name (e.g., "Grocery", "Electronics", "Clothing")
+4. Add a description and image if you want (optional)
+5. Click **Save**
 
 #### Step 4: Create Units of Measurement
 1. Go to **Inventory → Units**
 2. Click **Add Unit**
-3. Enter unit name and code (e.g., "Piece", "PCS")
-4. Save
-5. Common units: PCS, KG, LTR, BOX, CARTON
+3. Enter unit name and code:
+   - Examples: Piece (PCS), Kilogram (KG), Liter (LTR), Box (BOX), Carton (CARTON)
+4. Click **Save**
 
 #### Step 5: Add Products
 1. Go to **Inventory → Products**
 2. Click **Add Product**
-3. Fill in **Basic Information**:
-   - Product Name, SKU, Barcode (optional)
-   - Category and Unit
-   - Purchase Price and Sale Price
-   - Minimum Stock Level (for alerts)
-   - Product Image (optional)
-4. Save
-5. **Set Initial Stock**: After creating product, click **Stock Adjustment** to add opening stock
+3. Fill in the product information:
+   - Product Name
+   - SKU (Stock Keeping Unit - optional)
+   - Barcode (optional)
+   - Select Category and Unit
+   - Enter Purchase Price (what you pay)
+   - Enter Sale Price (what you charge)
+   - Set Minimum Stock Level (system will alert you when stock is low)
+   - Upload product image (optional)
+4. Click **Save**
+5. **Important**: After creating the product, click **Stock Adjustment** to add your opening stock
 
 #### Step 6: Add Suppliers
 1. Go to **Master Data → Suppliers**
 2. Click **Add Supplier**
 3. Enter supplier details:
-   - Name, code, contact information
+   - Name and code
+   - Contact information (phone, email)
    - Address
-   - Payment terms (optional)
-4. Save
+4. Click **Save**
 
 #### Step 7: Add Customers
 1. Go to **Master Data → Customers**
 2. Click **Add Customer**
 3. Enter customer details:
-   - Name, code, contact information
+   - Name and code
+   - Contact information (phone, email)
    - Address
-   - Opening balance (if any)
-4. Save
+   - Opening balance (if customer already owes you money)
+4. Click **Save**
 
 ---
 
-### 3.2 Daily Purchase Workflow
+## 3. Daily Operations
 
-#### Scenario: Receive Stock from Supplier
+### 3.1 Making a Purchase from Supplier
 
-**Step 1: Create Purchase Invoice (Draft)**
+When you receive stock from a supplier:
+
+**Step 1: Create Purchase Invoice**
 1. Go to **Purchase Management → Supplier Invoices**
 2. Click **Add Purchase**
-3. **Basic Information Tab**:
-   - Select Supplier
-   - Select Warehouse
-   - Set Invoice Date
-   - Optionally set Due Date
+3. Fill in **Basic Information**:
+   - Select the Supplier
+   - Select the Warehouse where stock will be stored
+   - Set the Invoice Date
+   - Set Due Date (when payment is due - optional)
    - Add Shipping Cost if any
-   - Add Notes
-4. **Items Tab**:
+   - Add any notes
+4. Go to **Items Tab**:
    - Click **Add Item**
-   - Select Product
-   - Enter Quantity
-   - Enter Unit Price
-   - Add Discount (if any)
-   - Add Tax (if any)
-   - Repeat for all items
-5. Review totals (calculated automatically)
-6. Click **Save as Draft** (or **Create Purchase** if stock should be updated immediately)
+   - Select the Product
+   - Enter Quantity received
+   - Enter Unit Price (what you paid per unit)
+   - Add Discount if any
+   - Add Tax if any
+   - Repeat for all products received
+5. Review the totals (calculated automatically)
+6. Click **Save as Draft** (if you want to review later) or **Create Purchase** (to update stock immediately)
 
-**Step 2: Receive Stock (If saved as Draft)**
+**Step 2: Receive Stock (If you saved as Draft)**
 1. Find the draft purchase in the list
 2. Click **Receive Stock** button
-3. System will:
-   - Update stock quantities in warehouse
-   - Create stock ledger entries
-   - Calculate weighted average cost
-   - Update purchase status to Pending/Partial/Paid based on payment
+3. The system will automatically:
+   - Update stock quantities in the warehouse
+   - Record the transaction in stock ledger
+   - Update purchase status
 
-**Step 3: Record Payment (Optional)**
+**Step 3: Record Payment**
 1. Click **Record Payment** on the purchase
 2. Enter:
    - Payment Amount
-   - Payment Method (Cash, Bank, Cheque, etc.)
+   - Payment Method (Cash, Bank Transfer, Cheque, etc.)
    - Payment Date
-   - Reference (cheque number, transaction ID, etc.)
-3. Save
-4. Purchase status updates automatically (Partial if not fully paid, Paid if fully paid)
+   - Reference number (cheque number, transaction ID, etc.)
+3. Click **Save**
+4. The purchase status will update automatically:
+   - **Partial** if you paid some amount
+   - **Paid** if you paid the full amount
 
-**Purchase Status Flow:**
-```
-Draft → Receive Stock → Pending (no payment)
-                      → Partial (partial payment)
-                      → Paid (full payment)
-```
+**Understanding Purchase Status:**
+- **Draft** - Created but stock not received yet (you can edit or delete)
+- **Pending** - Stock received but no payment made
+- **Partial** - Stock received, partial payment made
+- **Paid** - Fully paid
+- **Cancelled** - Purchase was cancelled
 
----
-
-### 3.3 Daily Sales Workflow
-
-#### Scenario: Sell Products to Customer
+### 3.2 Making a Sale to Customer
 
 **Step 1: Create Sale Invoice**
 1. Go to **Sales / POS**
-2. Click **Add Sale** (or use POS interface)
-3. **Product Selection**:
-   - Search products by name, SKU, or barcode
-   - Click product to add to cart
-   - Enter quantity
-   - System validates stock availability
+2. Click **Add Sale**
+3. **Add Products**:
+   - Search for products by typing the name, SKU, or scanning barcode
+   - Click on the product to add it to cart
+   - Enter the quantity
+   - The system will check if stock is available
    - Repeat for all items
-4. **Customer Selection**:
-   - Select Customer (or leave blank for Walk-in)
-   - Or search/create new customer on the fly
-5. **Warehouse Selection**:
-   - Select warehouse (important for stock tracking)
+4. **Select Customer**:
+   - Choose a customer from the list (or leave blank for Walk-in customer)
+   - You can also search for or create a new customer
+5. **Select Warehouse**:
+   - Choose the warehouse where stock will be taken from
 6. **Invoice Details**:
    - Invoice Date (defaults to today)
-   - Due Date (for credit sales)
-   - Add invoice-level discount if any
+   - Due Date (if customer will pay later)
+   - Add discount if any
    - Add shipping cost if any
    - Add notes
 7. **Payment Information**:
-   - Enter Paid Amount
+   - Enter how much the customer paid
    - Select Payment Method
-   - Remaining amount becomes Due
-8. Review totals (calculated automatically)
+   - Remaining amount will be shown as Due
+8. Review all totals (calculated automatically)
 9. Click **Save Sale**
 
 **What Happens Automatically:**
-- Stock is reduced in selected warehouse
-- Stock ledger entries created (stock out)
-- Customer balance updated (if credit sale)
-- Sale record created with status
+- Stock is reduced in the selected warehouse
+- Transaction is recorded in stock ledger
+- Customer balance is updated (if it's a credit sale)
+- Sale record is created
 
-**Step 2: View/Edit Sale (If Needed)**
+**Step 2: View or Edit Sale**
 1. Go to **Sales / POS** list
-2. Find the sale
-3. Click **View** to see details
-4. Click **Edit** to modify (only if status allows)
+2. Find the sale you want to view
+3. Click **View** to see all details
+4. Click **Edit** to make changes (only if the sale status allows)
 
-**Step 3: Collect Payment (If Credit Sale)**
+**Step 3: Collect Payment (For Credit Sales)**
 1. Go to **Reports → Due Reports**
-2. Filter by customer
-3. Click on customer due
-4. Record payment
-5. Sale status updates automatically
+2. Filter by customer name
+3. Click on the customer's due amount
+4. Click **Record Payment**
+5. Enter payment details and save
 
-**Sale Status Flow:**
-```
-Draft → Pending → Partial → Paid
-                 ↓
-            (or direct to Paid if fully paid)
-```
+**Understanding Sale Status:**
+- **Draft** - Created but not finalized
+- **Pending** - Created, no payment received
+- **Partial** - Some payment received
+- **Paid** - Fully paid
+- **Cancelled** - Sale was cancelled
 
----
+### 3.3 Adjusting Stock
 
-### 3.4 Stock Management Workflow
-
-#### Scenario 1: Adjust Stock (Manual Correction)
+Sometimes you need to correct stock levels (e.g., found extra items, damaged items removed):
 
 **Step 1: Access Stock Adjustment**
 1. Go to **Inventory → Products**
 2. Find the product
 3. Click **Stock Adjustment** button
-4. Or go to **Stock Management → Stock Ledger** and use stock adjustment
+   - OR go to **Stock Management → Stock Ledger** and use stock adjustment there
 
-**Step 2: Make Adjustment**
-1. Select **Warehouse**
+**Step 2: Make the Adjustment**
+1. Select the **Warehouse**
 2. Choose **Adjustment Type**:
-   - **Set Quantity**: Set exact stock (e.g., set to 100)
-   - **Add Stock**: Add to existing (e.g., add 50)
-   - **Subtract Stock**: Remove from existing (e.g., subtract 20)
-3. Enter **Quantity**
-4. Enter **Unit Cost** (optional, for cost calculation)
-5. Add **Notes** (e.g., "Damaged items removed", "Stock found")
-6. Save
+   - **Set Quantity** - Set exact stock (e.g., set to 100 pieces)
+   - **Add Stock** - Add to existing (e.g., add 50 pieces)
+   - **Subtract Stock** - Remove from existing (e.g., remove 20 pieces)
+3. Enter the **Quantity**
+4. Enter **Unit Cost** (optional - helps with cost calculations)
+5. Add **Notes** explaining why (e.g., "Damaged items removed", "Stock found during audit")
+6. Click **Save**
 
 **What Happens:**
-- Stock quantity updates
-- Stock ledger entry created
-- Weighted average cost recalculated (if cost provided)
+- Stock quantity is updated
+- Transaction is recorded in stock ledger
+- Cost is recalculated (if you entered cost)
 
-#### Scenario 2: View Stock Levels
+### 3.4 Viewing Stock Levels
 
-**Option 1: Per Product**
+You can check stock in three ways:
+
+**Option 1: View Stock Per Product**
 1. Go to **Inventory → Products**
 2. Click on any product
-3. View **Stock by Warehouse** section
-4. See:
-   - Quantity per warehouse
+3. See **Stock by Warehouse** section showing:
+   - Quantity in each warehouse
    - Average cost per warehouse
    - Total value per warehouse
 
-**Option 2: Stock Ledger**
+**Option 2: View Stock Ledger**
 1. Go to **Stock Management → Stock Ledger**
 2. Apply filters:
    - Date range
-   - Product
+   - Product name
    - Warehouse
-   - Type (In/Out)
-   - Reference type
+   - Type (Stock In or Stock Out)
 3. View all stock movements
 4. Export to Excel if needed
 
-**Option 3: Stock Report**
+**Option 3: View Stock Report**
 1. Go to **Reports → Stock Reports**
 2. Select report type:
    - Current Stock
@@ -373,36 +276,30 @@ Draft → Pending → Partial → Paid
    - Low Stock
 3. Apply filters (warehouse, category)
 4. View summary and detailed data
-5. Export to PDF/Excel
+5. Export to PDF or Excel
 
----
+### 3.5 Collecting Customer Payments
 
-### 3.5 Payment Collection Workflow
-
-#### Scenario: Collect Customer Payment
+You can record customer payments in three ways:
 
 **Method 1: From Due Reports**
 1. Go to **Reports → Due Reports**
 2. Filter by Customer (or view all)
-3. See customer due amounts
-4. Click on customer
-5. Record payment:
-   - Payment Amount
-   - Payment Method
-   - Payment Date
-   - Reference
-6. Save
+3. See all customer due amounts
+4. Click on a customer
+5. Click **Record Payment**
+6. Enter payment details and save
 
 **Method 2: From Customer Profile**
 1. Go to **Master Data → Customers**
-2. Find customer
+2. Find the customer
 3. View customer details
 4. See current balance
-5. Record payment
+5. Click **Record Payment**
 
 **Method 3: From Sales List**
 1. Go to **Sales / POS**
-2. Find sale with due amount
+2. Find the sale with due amount
 3. Click **Record Payment**
 4. Enter payment details
 5. Save
@@ -411,35 +308,32 @@ Draft → Pending → Partial → Paid
 
 ## 4. Administrative Tasks
 
-### 4.1 User Management
+### 4.1 Managing Users
 
-#### Create New User
-
-1. Go to **Users** (👥 Users in sidebar)
+**Create New User:**
+1. Go to **Users** (👥 icon in sidebar)
 2. Click **Add User**
 3. Fill in:
-   - Name, Email
+   - Name and Email
    - Password
-   - Role (Administrator, Cashier, Storekeeper)
-   - Status (Active/Inactive)
-4. Save
+   - Role (Administrator, Cashier, or Storekeeper)
+   - Status (Active or Inactive)
+4. Click **Save**
 
-#### Assign Permissions to Role
-
+**Assign Permissions:**
 1. Go to **Roles & Permissions → Roles**
-2. Select role
+2. Select the role you want to modify
 3. Click **Permissions** button
-4. Check/uncheck permissions as needed
-5. Save
+4. Check or uncheck permissions as needed
+5. Click **Save**
 
-**Common Permission Sets:**
-- **Cashier**: `access-dashboard`, `view-sales`, `create-sale`, `manage-customers`, `view-payments`, `record-payment`, `view-reports`, `view-products`, `upload-files`
-- **Storekeeper**: `access-dashboard`, `view-products`, `create-products`, `edit-products`, `delete-products`, `manage-categories`, `manage-warehouses`, `view-stock-ledger`, `view-purchases`, `create-purchase`, `manage-suppliers`, `view-payments`, `record-payment`, `view-reports`, `upload-files`
+**Common Roles:**
+- **Cashier** - Can access dashboard, create sales, manage customers, record payments, view reports
+- **Storekeeper** - Can manage products, stock, purchases, suppliers, and view reports
 
-### 4.2 Warehouse Management
+### 4.2 Managing Warehouses
 
-#### Add New Warehouse
-
+**Add New Warehouse:**
 1. Go to **Stock Management → Warehouses**
 2. Click **Add Warehouse**
 3. Enter:
@@ -447,76 +341,70 @@ Draft → Pending → Partial → Paid
    - Code (e.g., "BR-WH-001")
    - Address details
    - Contact information
-   - Manager (select user)
-   - Status
-4. Save
+   - Manager (select from users)
+   - Status (Active or Inactive)
+4. Click **Save**
 
-### 4.3 Category Management
+### 4.3 Managing Categories
 
-#### Add Category
-
+**Add Category:**
 1. Go to **Inventory → Categories**
 2. Click **Add Category**
 3. Enter:
-   - Name
+   - Category Name
    - Description (optional)
    - Image (optional)
-   - Status
-4. Save
+   - Status (Active or Inactive)
+4. Click **Save**
 
-### 4.4 Settings Management
+### 4.4 System Settings
 
-#### Update System Settings
-
-1. Go to **Settings** (⚙️ Settings)
+**Update Settings:**
+1. Go to **Settings** (⚙️ icon)
 2. Update:
-   - **General**: Site name, contact info
+   - **General**: Shop name, contact information
    - **Branding**: Logo, favicon
    - **Footer**: Copyright text
-   - **Email**: SMTP configuration (optional)
-3. Save
+   - **Email**: Email configuration (optional)
+3. Click **Save**
 
 ---
 
-## 5. Reporting & Analytics
+## 5. Reports & Analytics
 
 ### 5.1 Dashboard Overview
 
-The dashboard provides real-time business insights with AI-powered analysis:
+The dashboard shows you everything you need to know about your business at a glance:
 
 **AI-Powered Business Insights** (Top Section):
-- **Sales Forecast**: Predictive analytics showing expected sales for next week/month based on trend analysis
-- **Anomaly Detection**: Automatic alerts for:
-  - Sudden sales drops (high/medium priority)
+- **Sales Forecast** - Predicts your expected sales for next week or month
+- **Anomaly Detection** - Alerts you to:
+  - Sudden sales drops
   - Low stock situations
   - High customer dues
   - Negative profit warnings
-- **Performance Score**: Overall business health score (0-100) with:
-  - Color-coded indicators (green/blue/yellow/red)
-  - Performance label and description
-  - Visual circular progress indicator
-- **Smart Recommendations**: Actionable business advice with priority levels:
+- **Performance Score** - Overall business health score (0-100) with color indicators:
+  - Green (85-100): Excellent
+  - Blue (70-84): Very Good
+  - Yellow (50-69): Good
+  - Red (0-49): Needs Improvement
+- **Smart Recommendations** - Actionable advice like:
   - Boost sales performance
   - Restock inventory items
   - Optimize profit margins
   - Collect outstanding payments
-  - Leverage top-performing products
-  - Capitalize on growth momentum
-- **Trend Insights**: Real-time trend analysis chips showing:
-  - Sales growth/decline percentages
-  - Profit margin indicators
-  - Customer activity metrics
+- **Trend Insights** - Shows sales growth, profit margins, and customer activity
 
 **Key Metrics:**
-- Today's Sales (with growth %)
-- Month Sales (with growth %)
-- Profit (Revenue - Cost)
-- Customer Due
-- Purchases, Supplier Due
-- Product Count, Low Stock Items
+- Today's Sales (with growth percentage)
+- Month Sales (with growth percentage)
+- Profit (Revenue minus Cost)
+- Customer Due (money customers owe you)
+- Purchases and Supplier Due
+- Product Count and Low Stock Items
 
 **Visualizations:**
-- Sales Trend Chart (7-day or 30-day view)
+- Sales Trend Chart (view 7 days or 30 days)
 - Top 5 Products by Sales
 - Top 5 Customers by Sales
 
@@ -526,403 +414,188 @@ The dashboard provides real-time business insights with AI-powered analysis:
 
 ### 5.2 Sales Reports
 
-#### Generate Sales Report
-
+**Generate Sales Report:**
 1. Go to **Reports → Sales Reports**
 2. Set filters:
-   - **Date Range**: From Date and To Date
-   - **Customer**: Filter by specific customer
-   - **Status**: Filter by sale status
+   - **Date Range**: Select From Date and To Date
+   - **Customer**: Filter by specific customer (optional)
+   - **Status**: Filter by sale status (optional)
 3. Click **Generate Report**
 4. View:
-   - Summary cards (Total Sales, Paid, Due, Invoices)
+   - Summary cards (Total Sales, Paid, Due, Number of Invoices)
    - Detailed sales table
    - Top selling products
-5. **Export Options**:
-   - **PDF**: Click "Export PDF" (fully implemented)
-   - **Excel**: Click "Export Excel" (ready for implementation)
+5. **Export**: Click "Export PDF" to download as PDF file
 
 ### 5.3 Purchase Reports
 
-#### Generate Purchase Report
-
+**Generate Purchase Report:**
 1. Go to **Reports → Purchase Reports**
 2. Set filters:
-   - **Date Range**
-   - **Supplier**: Filter by supplier
-   - **Status**: Filter by purchase status
-3. Generate and view report
-4. Export to PDF/Excel
+   - **Date Range**: Select dates
+   - **Supplier**: Filter by supplier (optional)
+   - **Status**: Filter by purchase status (optional)
+3. Click **Generate Report**
+4. View summary and detailed data
+5. Export to PDF or Excel
 
 ### 5.4 Stock Reports
 
-#### Generate Stock Report
-
+**Generate Stock Report:**
 1. Go to **Reports → Stock Reports**
 2. Select **Report Type**:
    - Current Stock
    - Stock Ledger
    - Low Stock
 3. Set filters:
-   - **Warehouse**: Filter by warehouse
-   - **Category**: Filter by category
+   - **Warehouse**: Filter by warehouse (optional)
+   - **Category**: Filter by category (optional)
    - **Low Stock Only**: Check to show only low stock items
-4. Generate report
+4. Click **Generate Report**
 5. View summary and detailed data
-6. Export to PDF/Excel
+6. Export to PDF or Excel
 
 ### 5.5 Due Reports
 
-#### Generate Due Report
-
+**Generate Due Report:**
 1. Go to **Reports → Due Reports**
 2. Select **Party Type**:
-   - Customer Due
-   - Supplier Due
+   - Customer Due (money customers owe you)
+   - Supplier Due (money you owe suppliers)
 3. Set filters:
-   - **Party**: Filter by specific customer/supplier
-   - **Overdue Only**: Show only overdue amounts
-4. Generate report
+   - **Party**: Filter by specific customer/supplier (optional)
+   - **Overdue Only**: Check to show only overdue amounts
+4. Click **Generate Report**
 5. View summary and due details
-6. Export to PDF/Excel
+6. Export to PDF or Excel
 
 ### 5.6 Profit Reports
 
-#### Generate Profit Report
-
+**Generate Profit Report:**
 1. Go to **Reports → Profit Reports**
 2. Set filters:
-   - **Date Range**
-   - **Category**: Filter by category
-   - **Group By**:
+   - **Date Range**: Select dates
+   - **Category**: Filter by category (optional)
+   - **Group By**: Choose how to group data
      - Daily
      - Weekly
      - Monthly
      - By Product
      - By Category
-3. Generate report
+3. Click **Generate Report**
 4. View:
-   - Summary (Revenue, Cost, Profit, Margin)
+   - Summary (Revenue, Cost, Profit, Profit Margin)
    - Detailed profit data
-   - Chart data (for visualization)
-5. Export to PDF/Excel
+5. Export to PDF or Excel
 
 ---
 
-## 6. Development Workflows
+## 6. Troubleshooting
 
-### 6.1 Adding a New Feature
+### 6.1 Regular Maintenance Tasks
 
-#### Step 1: Database Setup
-
-```bash
-# Create migration
-php artisan make:migration create_feature_table
-
-# Edit migration file in database/migrations/
-# Define table structure
-
-# Run migration
-php artisan migrate
-```
-
-#### Step 2: Create Model
-
-```bash
-php artisan make:model Feature
-```
-
-Edit `app/Models/Feature.php`:
-- Define `$fillable` fields
-- Add relationships
-- Add scopes if needed
-
-#### Step 3: Create Controller
-
-```bash
-php artisan make:controller Api/FeatureController
-```
-
-Location: `app/Http/Controllers/Api/FeatureController.php`
-
-Implement:
-- `index()` - List with pagination, filtering, sorting
-- `store()` - Create new
-- `show()` - Get single
-- `update()` - Update existing
-- `destroy()` - Delete
-
-#### Step 4: Add Routes
-
-Edit `routes/api.php`:
-
-```php
-Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-    Route::apiResource('features', FeatureController::class)
-        ->middleware('permission:manage-features');
-});
-```
-
-#### Step 5: Create Frontend Component
-
-1. Create component: `resources/js/components/admin/feature/AdminFeatures.vue`
-2. Follow existing component patterns:
-   - Use `commonMixin` for common functionality
-   - Use `paginationMixin` for pagination
-   - Create dialog components for add/edit/view
-
-#### Step 6: Add Route to Frontend
-
-Edit `resources/js/routes.js`:
-
-```javascript
-{
-    path: 'features',
-    component: () => import('./components/admin/feature/AdminFeatures.vue'),
-    name: 'AdminFeatures',
-    meta: { title: 'Feature Management', permissions: ['manage-features'] }
-}
-```
-
-#### Step 7: Add to Navigation Menu
-
-Edit `resources/js/components/admin/AdminLayout.vue`:
-
-Add menu item in sidebar navigation.
-
-#### Step 8: Add Permissions
-
-1. Add permission to seeder: `database/seeders/RolePermissionSeeder.php`
-2. Assign permission to roles
-3. Run seeder: `php artisan db:seed --class=RolePermissionSeeder`
-
-### 6.2 Testing Workflow
-
-```bash
-# Run PHPUnit tests
-php artisan test
-
-# Run specific test file
-php artisan test --filter FeatureTest
-
-# Run with coverage
-php artisan test --coverage
-```
-
-### 6.3 Code Style
-
-```bash
-# Format PHP code with Laravel Pint
-./vendor/bin/pint
-
-# Or
-php artisan pint
-```
-
-### 6.4 Git Workflow
-
-```bash
-# Create feature branch
-git checkout -b feature/new-feature-name
-
-# Make changes and commit
-git add .
-git commit -m "Add: Description of changes"
-
-# Push to repository
-git push origin feature/new-feature-name
-
-# Create pull request (on GitHub/GitLab)
-```
-
----
-
-## 7. Maintenance & Troubleshooting
-
-### 7.1 Regular Maintenance Tasks
-
-#### Daily
+**Daily:**
 - Check dashboard for low stock alerts
 - Review recent sales and purchases
-- Monitor customer/supplier dues
+- Monitor customer and supplier dues
 
-#### Weekly
+**Weekly:**
 - Review stock levels
 - Generate sales and profit reports
-- Check for any system errors in logs
+- Check for any issues
 
-#### Monthly
-- Generate monthly reports (Sales, Purchase, Profit, Stock)
-- Review and archive old data if needed
-- Update product prices if required
+**Monthly:**
+- Generate all monthly reports (Sales, Purchase, Profit, Stock)
+- Review and update product prices if needed
 - Review user access and permissions
 
-### 7.2 Common Issues & Solutions
+### 6.2 Common Issues & Solutions
 
-#### Issue: Stock Not Updating After Purchase
+**Issue: Stock Not Updating After Purchase**
 
 **Solution:**
 1. Check if purchase status is "Draft"
-2. If draft, click "Receive Stock" button
-3. If not draft, check stock ledger for entries
-4. Verify warehouse selection in purchase
+2. If it's Draft, click "Receive Stock" button
+3. If not Draft, check the Stock Ledger to see if entries were created
+4. Make sure you selected the correct warehouse
 
-#### Issue: Sale Not Allowing Product Addition
-
-**Solution:**
-1. Check if product has stock in selected warehouse
-2. Verify product is active
-3. Check warehouse selection in sale form
-4. Review stock ledger for recent transactions
-
-#### Issue: Dashboard Not Loading
+**Issue: Can't Add Product to Sale**
 
 **Solution:**
-1. Check browser console for errors
-2. Verify API endpoint is accessible: `/api/v1/dashboard`
-3. Check authentication token is valid
-4. Review Laravel logs: `storage/logs/laravel.log`
+1. Check if the product has stock in the selected warehouse
+2. Make sure the product is Active (not Inactive)
+3. Check that you selected the correct warehouse in the sale form
+4. Review Stock Ledger to see recent stock movements
 
-#### Issue: Permission Denied Errors
-
-**Solution:**
-1. Check user role and permissions
-2. Verify permission is assigned to role
-3. Check route middleware requires correct permission
-4. Logout and login again to refresh token
-
-#### Issue: PDF Export Not Working
+**Issue: Dashboard Not Loading**
 
 **Solution:**
-1. Check DomPDF is installed: `composer show barryvdh/laravel-dompdf`
-2. Verify storage directory is writable: `storage/app/public`
-3. Check PHP memory limit (PDF generation can be memory intensive)
-4. Review Laravel logs for specific errors
+1. Refresh the page (press F5 or click refresh button)
+2. Make sure you're logged in
+3. Try logging out and logging back in
+4. Contact your system administrator if problem persists
 
-### 7.3 Backup Procedures
+**Issue: Permission Denied Error**
 
-#### Database Backup
+**Solution:**
+1. Check your user role - you may not have permission for that action
+2. Logout and login again
+3. Contact administrator to check your permissions
 
-```bash
-# MySQL
-mysqldump -u root -p shop_management > backup_$(date +%Y%m%d).sql
+**Issue: PDF Export Not Working**
 
-# PostgreSQL
-pg_dump shop_management > backup_$(date +%Y%m%d).sql
-```
-
-#### File Backup
-
-```bash
-# Backup uploaded files
-tar -czf uploads_backup_$(date +%Y%m%d).tar.gz public/uploads/
-
-# Backup entire project
-tar -czf project_backup_$(date +%Y%m%d).tar.gz --exclude='node_modules' --exclude='vendor' .
-```
-
-### 7.4 Log Files
-
-**Laravel Logs:**
-- Location: `storage/logs/laravel.log`
-- View recent logs: `tail -f storage/logs/laravel.log`
-- Or use: `php artisan pail` (if Laravel Pail is installed)
-
-**Clear Logs:**
-```bash
-# Clear Laravel logs
-echo "" > storage/logs/laravel.log
-```
+**Solution:**
+1. Make sure you have a stable internet connection
+2. Try again after a few moments
+3. Check if your browser allows downloads
+4. Contact system administrator if problem continues
 
 ---
 
-## 8. Quick Reference Guides
+## 7. Quick Reference
 
-### 8.1 Keyboard Shortcuts
+### 7.1 Keyboard Shortcuts
 
-**In POS/Sales:**
-- Search products: Start typing product name/SKU
-- Add to cart: Click product or press Enter
-- Quick quantity: Type number and press Enter
+**In Sales/POS:**
+- Start typing product name/SKU to search
+- Click product or press Enter to add to cart
+- Type number and press Enter for quick quantity entry
 
-### 8.2 Status Meanings
+### 7.2 Understanding Statuses
 
 **Purchase Status:**
-- **Draft**: Created but stock not received (can edit/delete)
-- **Pending**: Stock received, no payment
-- **Partial**: Stock received, partial payment made
-- **Paid**: Fully paid
-- **Cancelled**: Purchase cancelled
+- **Draft** - Created but stock not received (you can edit or delete)
+- **Pending** - Stock received, no payment made
+- **Partial** - Stock received, some payment made
+- **Paid** - Fully paid
+- **Cancelled** - Purchase was cancelled
 
 **Sale Status:**
-- **Draft**: Created but not finalized
-- **Pending**: Created, no payment
-- **Partial**: Partial payment received
-- **Paid**: Fully paid
-- **Cancelled**: Sale cancelled
+- **Draft** - Created but not finalized
+- **Pending** - Created, no payment received
+- **Partial** - Some payment received
+- **Paid** - Fully paid
+- **Cancelled** - Sale was cancelled
 
-**Stock Status:**
-- **Red**: Out of stock (quantity = 0)
-- **Yellow**: Low stock (below minimum level)
-- **Green**: Sufficient stock
+**Stock Status Indicators:**
+- **Red** - Out of stock (quantity is 0)
+- **Yellow** - Low stock (below minimum level)
+- **Green** - Sufficient stock
 
-### 8.3 API Authentication
+### 7.3 Currency and Date Formats
 
-All API requests require authentication:
+**Currency:**
+- All money amounts use BDT (Bangladeshi Taka)
+- Symbol: ৳
+- Format: ৳12,345.67 (with commas and 2 decimal places)
 
-```javascript
-// Get token from login
-POST /api/v1/auth/login
-{
-  "email": "admin@mail.com",
-  "password": "password"
-}
+**Date Formats:**
+- Display: DD/MM/YYYY (e.g., 25/12/2024)
+- With Time: DD/MM/YYYY HH:MM AM/PM (e.g., 25/12/2024 02:30 PM)
 
-// Use token in subsequent requests
-Authorization: Bearer {token}
-```
+### 7.4 Workflow Diagrams
 
-### 8.4 Currency Format
-
-All monetary values use:
-- **Currency**: BDT (Bangladeshi Taka)
-- **Symbol**: ৳
-- **Format**: ৳12,345.67 (with comma separators, 2 decimal places)
-
-### 8.5 Date Formats
-
-- **Display Format**: DD/MM/YYYY (e.g., 25/12/2024)
-- **Display with Time**: DD/MM/YYYY HH:MM AM/PM (e.g., 25/12/2024 02:30 PM)
-- **API Format**: YYYY-MM-DD (e.g., 2024-12-25)
-
-### 8.6 Common File Locations
-
-**Backend:**
-- Controllers: `app/Http/Controllers/Api/`
-- Models: `app/Models/`
-- Routes: `routes/api.php`
-- Migrations: `database/migrations/`
-
-**Frontend:**
-- Components: `resources/js/components/admin/`
-- Routes: `resources/js/routes.js`
-- Mixins: `resources/js/mixins/`
-- Utils: `resources/js/utils/`
-
-**Views:**
-- Reports PDF: `resources/views/reports/`
-
-**Uploads:**
-- Products: `public/uploads/products/`
-- Users: `public/uploads/users/`
-- Branding: `public/uploads/branding/`
-
----
-
-## 9. Workflow Diagrams
-
-### 9.1 Complete Purchase to Stock Flow
-
+**Purchase to Stock Flow:**
 ```
 1. Create Purchase (Draft)
    ↓
@@ -930,30 +603,25 @@ All monetary values use:
    ↓
 3. Save as Draft OR Create Purchase
    ↓
-4a. If Draft: Click "Receive Stock"
+4. If Draft: Click "Receive Stock"
    OR
-4b. If Created: Stock auto-updated
+   If Created: Stock auto-updated
    ↓
 5. Stock Updated in Warehouse
    ↓
-6. Stock Ledger Entry Created
+6. (Optional) Record Payment
    ↓
-7. Weighted Average Cost Calculated
-   ↓
-8. (Optional) Record Payment
-   ↓
-9. Purchase Status Updated
+7. Purchase Status Updated
 ```
 
-### 9.2 Complete Sales Flow
-
+**Sales Flow:**
 ```
 1. Create Sale / Use POS
    ↓
 2. Select Warehouse
    ↓
 3. Add Products to Cart
-   (System validates stock)
+   (System checks stock)
    ↓
 4. Select Customer (or Walk-in)
    ↓
@@ -963,26 +631,21 @@ All monetary values use:
    ↓
 7. Stock Reduced in Warehouse
    ↓
-8. Stock Ledger Entry Created (Stock Out)
+8. Customer Balance Updated (if credit sale)
    ↓
-9. Customer Balance Updated (if credit)
-   ↓
-10. Sale Status Set (Pending/Partial/Paid)
+9. Sale Status Set
 ```
 
-### 9.3 Stock Adjustment Flow
-
+**Stock Adjustment Flow:**
 ```
-1. Access Product or Stock Ledger
+1. Go to Product or Stock Ledger
    ↓
 2. Click "Stock Adjustment"
    ↓
 3. Select Warehouse
    ↓
-4. Choose Adjustment Type:
-   - Set Quantity
-   - Add Stock
-   - Subtract Stock
+4. Choose Adjustment Type
+   (Set Quantity / Add Stock / Subtract Stock)
    ↓
 5. Enter Quantity & Optional Cost
    ↓
@@ -991,105 +654,45 @@ All monetary values use:
 7. Save
    ↓
 8. Stock Updated
-   ↓
-9. Stock Ledger Entry Created
-   ↓
-10. Cost Recalculated (if cost provided)
 ```
 
----
+### 7.5 Best Practices
 
-## 10. Best Practices
+**Data Entry:**
+1. Always verify stock before creating sales
+2. Use correct warehouse when creating purchases/sales
+3. Enter accurate prices for correct profit calculations
+4. Set minimum stock levels for all products
+5. Record payments promptly for accurate due tracking
 
-### 10.1 Data Entry
+**Stock Management:**
+1. Do regular stock audits to ensure accuracy
+2. Use stock adjustments for corrections (don't edit directly)
+3. Check low stock alerts daily
+4. Review stock ledger regularly for any discrepancies
 
-1. **Always verify stock** before creating sales
-2. **Use correct warehouse** when creating purchases/sales
-3. **Enter accurate prices** for profit calculations
-4. **Set minimum stock levels** for all products
-5. **Record payments promptly** for accurate due tracking
+**User Management:**
+1. Assign appropriate roles based on job functions
+2. Review permissions regularly
+3. Deactivate unused accounts
+4. Use strong passwords
 
-### 10.2 Stock Management
-
-1. **Regular stock audits** to ensure accuracy
-2. **Use stock adjustments** for corrections (not direct edits)
-3. **Check low stock alerts daily**
-4. **Review stock ledger regularly** for discrepancies
-
-### 10.3 User Management
-
-1. **Assign appropriate roles** based on job functions
-2. **Review permissions regularly**
-3. **Deactivate unused accounts**
-4. **Use strong passwords**
-
-### 10.4 Reporting
-
-1. **Generate reports regularly** for business insights
-2. **Export PDFs** for record keeping
-3. **Compare reports** (month-over-month, year-over-year)
-4. **Use filters effectively** for specific analysis
+**Reporting:**
+1. Generate reports regularly for business insights
+2. Export PDFs for record keeping
+3. Compare reports (month-over-month, year-over-year)
+4. Use filters effectively for specific analysis
 
 ---
 
-## 11. Support & Resources
-
-### 11.1 Documentation
-
-- **README.md**: Project overview and API documentation
-- **SRS Document**: `public/Project Report/Shop Managment System.pdf`
-- **This Work Plan**: Complete operational guide
-
-### 11.2 Getting Help
-
-1. Check this work plan first
-2. Review README.md for technical details
-3. Check Laravel logs for errors
-4. Review code comments in controllers/models
-
-### 11.3 Common Commands Reference
-
-```bash
-# Development
-php artisan serve              # Start Laravel server
-npm run dev                    # Start Vite dev server
-npm run build                  # Build for production
-
-# Database
-php artisan migrate            # Run migrations
-php artisan migrate:fresh      # Drop all tables and re-run migrations
-php artisan db:seed            # Run seeders
-php artisan migrate:refresh --seed  # Refresh migrations with seed
-
-# Cache
-php artisan cache:clear        # Clear application cache
-php artisan config:clear       # Clear configuration cache
-php artisan route:clear        # Clear route cache
-php artisan view:clear         # Clear view cache
-
-# Optimization
-php artisan optimize           # Optimize for production
-php artisan config:cache       # Cache configuration
-php artisan route:cache        # Cache routes
-
-# Testing
-php artisan test               # Run tests
-php artisan test --filter TestName  # Run specific test
-
-# Tinker (Laravel REPL)
-php artisan tinker             # Interactive shell
-```
-
----
-
-## 12. Checklist for Daily Operations
+## 8. Daily Checklists
 
 ### Morning Checklist
 
 - [ ] Check dashboard for low stock alerts
 - [ ] Review yesterday's sales
 - [ ] Check customer dues
-- [ ] Verify system is running properly
+- [ ] Verify system is working properly
 
 ### End of Day Checklist
 
@@ -1105,7 +708,6 @@ php artisan tinker             # Interactive shell
 - [ ] Review stock levels and reorder if needed
 - [ ] Check customer/supplier payment status
 - [ ] Review and update product prices if needed
-- [ ] Backup database
 
 ### Monthly Checklist
 
@@ -1113,12 +715,10 @@ php artisan tinker             # Interactive shell
 - [ ] Review profit margins
 - [ ] Check slow-moving products
 - [ ] Review user access and permissions
-- [ ] Full system backup
-- [ ] Review and archive old data if needed
+- [ ] Full system backup (contact administrator)
 
 ---
 
-**End of Work Plan**
+**End of User Guide**
 
-*This document should be updated as the system evolves. Keep it current with any new features or workflow changes.*
-
+*This guide helps you use the Shop Management System effectively. If you need help, contact your system administrator.*
