@@ -24,10 +24,10 @@
                                             required></v-select>
                                     </v-col>
                                     <v-col cols="12" md="6" class="pa-2">
-                                        <v-select v-model="localForm.warehouse_id" :items="warehouseOptions"
+                                        <v-select v-model="localForm.warehouse_id" :items="validWarehouseOptions"
                                             item-title="label" item-value="value" label="Warehouse" density="compact"
-                                            variant="outlined" hide-details="auto" :rules="[rules.required]"
-                                            required></v-select>
+                                            variant="outlined" hide-details="auto" :rules="[rules.required]" required
+                                            no-data-text="No warehouses available"></v-select>
                                     </v-col>
                                     <v-col cols="12" md="6" class="pa-2">
                                         <v-select v-model="localForm.grn_id" :items="grnOptions" item-title="label"
@@ -274,6 +274,27 @@ export default {
                 console.warn('No valid product options found. ProductOptions:', this.productOptions);
             }
             return valid;
+        },
+        validWarehouseOptions() {
+            // Ensure warehouseOptions is always an array and properly formatted
+            if (!Array.isArray(this.warehouseOptions)) {
+                console.warn('WarehouseOptions is not an array:', this.warehouseOptions);
+                return [];
+            }
+            if (this.warehouseOptions.length === 0) {
+                console.warn('WarehouseOptions is empty');
+                return [];
+            }
+            // Return all options that have both label and value
+            const valid = this.warehouseOptions.filter(option => {
+                const hasLabel = option && (option.label || option.title);
+                const hasValue = option && (option.value !== undefined && option.value !== null);
+                return hasLabel && hasValue;
+            });
+            if (valid.length === 0 && this.warehouseOptions.length > 0) {
+                console.warn('No valid warehouse options found. WarehouseOptions:', this.warehouseOptions);
+            }
+            return valid;
         }
     },
     watch: {
@@ -297,6 +318,17 @@ export default {
                 // Ensure productOptions are reactive
                 if (newVal && Array.isArray(newVal) && newVal.length > 0) {
                     console.log('ProductOptions updated:', newVal.length, 'products');
+                }
+            },
+            immediate: true
+        },
+        warehouseOptions: {
+            handler(newVal) {
+                // Ensure warehouseOptions are reactive
+                if (newVal && Array.isArray(newVal) && newVal.length > 0) {
+                    console.log('WarehouseOptions updated:', newVal.length, 'warehouses');
+                } else {
+                    console.warn('WarehouseOptions issue:', newVal);
                 }
             },
             immediate: true

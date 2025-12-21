@@ -305,13 +305,11 @@ export default {
                 const response = await this.$axios.get('/api/v1/stock-ledger/warehouses', {
                     headers: this.getAuthHeaders()
                 });
-                this.warehouses = response.data.warehouses || [];
-                this.warehouseOptions = this.warehouses.map(w => ({
-                    label: w.name,
-                    value: w.id
-                }));
+                // Backend already returns warehouses with label and value keys, so use them directly
+                this.warehouseOptions = response.data.warehouses || [];
             } catch (error) {
                 console.error('Error loading warehouses:', error);
+                this.warehouseOptions = [];
             }
         },
         async loadProducts() {
