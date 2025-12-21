@@ -104,6 +104,8 @@
 </template>
 
 <script>
+import { formatCurrency, formatDateDDMMYYYY } from '@/utils/formatters';
+
 export default {
     name: 'ViewPurchaseReturnDialog',
     props: {
@@ -118,21 +120,8 @@ export default {
     },
     emits: ['update:modelValue'],
     methods: {
-        formatCurrency(value) {
-            if (value === null || value === undefined) return '৳0.00';
-            return '৳' + new Intl.NumberFormat('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(value);
-        },
-        formatDate(date) {
-            if (!date) return 'N/A';
-            return new Date(date).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-        },
+        formatCurrency,
+        formatDate: formatDateDDMMYYYY,
         getStatusColor(status) {
             const colors = {
                 'draft': 'warning',

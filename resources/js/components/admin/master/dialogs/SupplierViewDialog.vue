@@ -201,6 +201,7 @@
 
 <script>
 import commonMixin from '../../../../mixins/commonMixin';
+import { formatCurrency, formatDateShort } from '@/utils/formatters';
 
 export default {
     name: 'SupplierViewDialog',
@@ -239,13 +240,8 @@ export default {
         }
     },
     methods: {
-        formatCurrency(value) {
-            if (value === null || value === undefined) return '৳0.00';
-            return '৳' + new Intl.NumberFormat('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(value);
-        }
+        formatCurrency,
+        formatDateShort
     }
 };
 </script>

@@ -187,6 +187,7 @@
 
 <script>
 import axios from '@/utils/axios.config';
+import { formatDateShort } from '@/utils/formatters';
 
 export default {
     name: 'WarehouseViewDialog',
@@ -264,28 +265,7 @@ export default {
                 this.loading = false;
             }
         },
-        formatDateShort(dateString) {
-            if (!dateString) return '-';
-            try {
-                const date = new Date(dateString);
-                if (isNaN(date.getTime())) return '-';
-                
-                const day = String(date.getDate()).padStart(2, '0');
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const year = date.getFullYear();
-
-                let hours = date.getHours();
-                const minutes = String(date.getMinutes()).padStart(2, '0');
-                const ampm = hours >= 12 ? 'PM' : 'AM';
-                hours = hours % 12;
-                hours = hours ? hours : 12;
-                const formattedHours = String(hours).padStart(2, '0');
-
-                return `${day}/${month}/${year} ${formattedHours}:${minutes} ${ampm}`;
-            } catch (error) {
-                return '-';
-            }
-        },
+        formatDateShort,
         close() {
             this.$emit('update:modelValue', false);
         },
