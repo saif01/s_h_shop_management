@@ -81,10 +81,10 @@ Route::prefix('v1')->group(function () {
             ->middleware('permission:access-dashboard');
 
         // Upload routes
-        Route::post('upload/image', [UploadController::class, 'uploadImage']);
-        Route::post('upload/images', [UploadController::class, 'uploadMultipleImages']);
-        Route::post('upload/file', [UploadController::class, 'uploadFile']);
-        Route::delete('upload/image', [UploadController::class, 'deleteImage']);
+        Route::post('upload/image', [UploadController::class, 'uploadImage'])->middleware('permission:upload-files');
+        Route::post('upload/images', [UploadController::class, 'uploadMultipleImages'])->middleware('permission:upload-files');
+        Route::post('upload/file', [UploadController::class, 'uploadFile'])->middleware('permission:upload-files');
+        Route::delete('upload/image', [UploadController::class, 'deleteImage'])->middleware('permission:upload-files');
 
         // Settings
         Route::get('settings', [SettingController::class, 'index'])->middleware('permission:manage-settings');

@@ -54,6 +54,9 @@ class RolePermissionSeeder extends Seeder
             // Settings Permissions
             ['name' => 'Manage Settings', 'slug' => 'manage-settings', 'group' => 'settings', 'description' => 'Manage system settings'],
 
+            // Upload Permissions
+            ['name' => 'Upload Files', 'slug' => 'upload-files', 'group' => 'general', 'description' => 'Upload images and files'],
+
             // System Permissions
             ['name' => 'View Login Logs', 'slug' => 'view-login-logs', 'group' => 'system', 'description' => 'View and manage login logs'],
         ];
@@ -94,6 +97,7 @@ class RolePermissionSeeder extends Seeder
                     'view-payments',
                     'record-payment',
                     'view-reports',
+                    'upload-files',
                 ],
             ],
             [
@@ -121,6 +125,7 @@ class RolePermissionSeeder extends Seeder
                     'view-payments',
                     'record-payment',
                     'view-reports',
+                    'upload-files',
                 ],
             ],
         ];

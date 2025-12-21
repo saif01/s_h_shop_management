@@ -30,6 +30,18 @@ class PermissionMiddleware
             return response()->json(['message' => 'Permission required'], 403);
         }
 
+        // Flatten and split comma-separated permissions
+        // Laravel passes comma-separated values as a single string argument
+        $allPermissions = [];
+        foreach ($permissions as $permission) {
+            // Split by comma and trim whitespace
+            $splitPermissions = array_map('trim', explode(',', $permission));
+            $allPermissions = array_merge($allPermissions, $splitPermissions);
+        }
+        
+        // Remove empty values and duplicates
+        $allPermissions = array_unique(array_filter($allPermissions));
+
         // Check if user has any of the required permissions
         // Also check if user has administrator role (has all permissions)
         $hasPermission = false;
@@ -39,7 +51,7 @@ class PermissionMiddleware
             $hasPermission = true;
         } else {
             // Check if user has any of the required permissions through their roles
-            foreach ($permissions as $permission) {
+            foreach ($allPermissions as $permission) {
                 if ($user->hasPermission($permission)) {
                     $hasPermission = true;
                     break;
@@ -50,7 +62,7 @@ class PermissionMiddleware
         if (!$hasPermission) {
             return response()->json([
                 'message' => 'Unauthorized. You do not have permission to perform this action.',
-                'required_permissions' => $permissions
+                'required_permissions' => $allPermissions
             ], 403);
         }
 
