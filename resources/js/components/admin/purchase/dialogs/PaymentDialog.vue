@@ -36,7 +36,6 @@
 </template>
 
 <script>
-import commonMixin from '../../../../mixins/commonMixin';
 import DatePickerVuetifyInput from '@/components/common/DatePickerVuetifyInput.vue';
 
 export default {
@@ -44,7 +43,6 @@ export default {
     components: {
         DatePickerVuetifyInput
     },
-    mixins: [commonMixin],
     props: {
         modelValue: {
             type: Boolean,

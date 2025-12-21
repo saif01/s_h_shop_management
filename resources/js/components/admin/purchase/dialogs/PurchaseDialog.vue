@@ -69,10 +69,17 @@
                         <!-- Items Tab -->
                         <v-window-item value="items">
                             <div class="pa-3">
-                                <div class="d-flex justify-space-between align-center mb-2">
-                                    <span class="text-body-1 font-weight-medium">Invoice Items</span>
+                                <div class="d-flex justify-space-between align-center mb-3">
+                                    <div>
+                                        <span class="text-body-1 font-weight-medium">Invoice Items</span>
+                                        <div class="text-caption text-grey mt-1" v-if="localForm.items.length === 0">
+                                            Click "Add Item" button to add products to this invoice
+                                        </div>
+                                    </div>
                                     <v-btn size="small" color="primary" prepend-icon="mdi-plus" density="compact"
-                                        @click="addPurchaseItem">Add Item</v-btn>
+                                        @click="addPurchaseItem" variant="flat">
+                                        Add Item
+                                    </v-btn>
                                 </div>
                                 <v-table density="compact" class="items-table">
                                     <thead>
@@ -398,15 +405,24 @@ export default {
         },
         calculateItemTotal(index) {
             const item = this.localForm.items[index];
-            if (item.quantity && item.unit_price) {
+            if (item && item.quantity && item.unit_price) {
                 const itemTotal = (item.quantity * item.unit_price) - (item.discount || 0) + (item.tax || 0);
-                this.$set(this.localForm.items[index], 'total', itemTotal);
+                // Direct assignment works in Vue 3
+                item.total = itemTotal;
+            } else if (item) {
+                item.total = 0;
             }
         },
         calculateTotals() {
             // Trigger recalculation
         },
         addPurchaseItem() {
+            // Switch to Items tab if not already there
+            if (this.activeTab !== 'items') {
+                this.activeTab = 'items';
+            }
+
+            // Add new item to the array
             this.localForm.items.push({
                 product_id: null,
                 quantity: 1,

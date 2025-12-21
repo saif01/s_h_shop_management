@@ -231,7 +231,6 @@ export default {
             warehouseFilter: null,
             dialog: false,
             editingPurchase: null,
-            saving: false,
             viewDialog: false,
             viewingPurchase: null,
             paymentDialog: false,
