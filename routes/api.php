@@ -20,6 +20,11 @@ use App\Http\Controllers\Api\sales\SaleController;
 use App\Http\Controllers\Api\products\UnitController;
 use App\Http\Controllers\Api\stock\WarehouseController;
 use App\Http\Controllers\Api\reports\ReportController;
+use App\Http\Controllers\Api\reports\SalesReportController;
+use App\Http\Controllers\Api\reports\PurchaseReportController;
+use App\Http\Controllers\Api\reports\StockReportController;
+use App\Http\Controllers\Api\reports\DueReportController;
+use App\Http\Controllers\Api\reports\ProfitReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('test', function () {
@@ -147,29 +152,29 @@ Route::prefix('v1')->group(function () {
         // Reports
         Route::prefix('reports')->middleware('permission:view-reports')->group(function () {
             // Sales Reports
-            Route::get('sales', [ReportController::class, 'salesReport']);
-            Route::get('sales/export/excel', [ReportController::class, 'exportSalesExcel'])->middleware('permission:export-reports');
-            Route::get('sales/export/pdf', [ReportController::class, 'exportSalesPDF'])->middleware('permission:export-reports');
+            Route::get('sales', [SalesReportController::class, 'index']);
+            Route::get('sales/export/excel', [SalesReportController::class, 'exportExcel'])->middleware('permission:export-reports');
+            Route::get('sales/export/pdf', [SalesReportController::class, 'exportPDF'])->middleware('permission:export-reports');
             
             // Purchase Reports
-            Route::get('purchases', [ReportController::class, 'purchaseReport']);
-            Route::get('purchases/export/excel', [ReportController::class, 'exportSalesExcel'])->middleware('permission:export-reports');
-            Route::get('purchases/export/pdf', [ReportController::class, 'exportSalesPDF'])->middleware('permission:export-reports');
+            Route::get('purchases', [PurchaseReportController::class, 'index']);
+            Route::get('purchases/export/excel', [PurchaseReportController::class, 'exportExcel'])->middleware('permission:export-reports');
+            Route::get('purchases/export/pdf', [PurchaseReportController::class, 'exportPDF'])->middleware('permission:export-reports');
             
             // Stock Reports
-            Route::get('stock', [ReportController::class, 'stockReport']);
-            Route::get('stock/export/excel', [ReportController::class, 'exportSalesExcel'])->middleware('permission:export-reports');
-            Route::get('stock/export/pdf', [ReportController::class, 'exportSalesPDF'])->middleware('permission:export-reports');
+            Route::get('stock', [StockReportController::class, 'index']);
+            Route::get('stock/export/excel', [StockReportController::class, 'exportExcel'])->middleware('permission:export-reports');
+            Route::get('stock/export/pdf', [StockReportController::class, 'exportPDF'])->middleware('permission:export-reports');
             
             // Due Reports
-            Route::get('due', [ReportController::class, 'dueReport']);
-            Route::get('due/export/excel', [ReportController::class, 'exportSalesExcel'])->middleware('permission:export-reports');
-            Route::get('due/export/pdf', [ReportController::class, 'exportSalesPDF'])->middleware('permission:export-reports');
+            Route::get('due', [DueReportController::class, 'index']);
+            Route::get('due/export/excel', [DueReportController::class, 'exportExcel'])->middleware('permission:export-reports');
+            Route::get('due/export/pdf', [DueReportController::class, 'exportPDF'])->middleware('permission:export-reports');
             
             // Profit Reports
-            Route::get('profit', [ReportController::class, 'profitReport']);
-            Route::get('profit/export/excel', [ReportController::class, 'exportSalesExcel'])->middleware('permission:export-reports');
-            Route::get('profit/export/pdf', [ReportController::class, 'exportSalesPDF'])->middleware('permission:export-reports');
+            Route::get('profit', [ProfitReportController::class, 'index']);
+            Route::get('profit/export/excel', [ProfitReportController::class, 'exportExcel'])->middleware('permission:export-reports');
+            Route::get('profit/export/pdf', [ProfitReportController::class, 'exportPDF'])->middleware('permission:export-reports');
         });
     });
 });

@@ -8,13 +8,12 @@ use App\Models\SalesItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class ReportController extends Controller
+class SalesReportController extends Controller
 {
     /**
      * Sales Report
-     * @deprecated Use SalesReportController@index instead
      */
-    public function salesReport(Request $request)
+    public function index(Request $request)
     {
         $query = Sale::with(['customer', 'items.product'])
             ->select('sales.*')
@@ -39,11 +38,6 @@ class ReportController extends Controller
         // Sorting
         $sortBy = $request->get('sort_by', 'invoice_date');
         $sortDirection = $request->get('sort_direction', 'desc');
-        
-        $allowedSortFields = [
-            'id', 'invoice_number', 'invoice_date', 'customer_name', 
-            'total_amount', 'paid_amount', 'balance_amount', 'status', 'created_at'
-        ];
         
         // Map frontend sort fields to database fields
         $sortFieldMap = [
@@ -71,17 +65,15 @@ class ReportController extends Controller
         // For financial calculations: exclude cancelled sales unless explicitly filtered by cancelled status
         $salesForFinancials = $allSalesForSummary;
         if (!$request->status || $request->status !== 'cancelled') {
-            // If no status filter or not filtering by cancelled, exclude cancelled from financials
             $salesForFinancials = $allSalesForSummary->where('status', '!=', 'cancelled');
         }
         
         // Calculate summary from all filtered sales
-        // Financial totals exclude cancelled sales (unless explicitly viewing cancelled), count includes all
         $summary = [
             'total_sales' => (float) ($salesForFinancials->sum('total_amount') ?? 0),
             'total_paid' => (float) ($salesForFinancials->sum('paid_amount') ?? 0),
             'total_due' => (float) ($salesForFinancials->sum('balance_amount') ?? 0),
-            'total_count' => (int) $allSalesForSummary->count(), // Include all statuses in count
+            'total_count' => (int) $allSalesForSummary->count(),
         ];
 
         // Paginate the sales
@@ -111,7 +103,6 @@ class ReportController extends Controller
         if ($request->status) {
             $topProducts->where('sales.status', $request->status);
         } else {
-            // If no status filter, exclude cancelled sales from top products
             $topProducts->where('sales.status', '!=', 'cancelled');
         }
         
@@ -131,23 +122,19 @@ class ReportController extends Controller
 
     /**
      * Export Sales Report to Excel
-     * @deprecated Use SalesReportController@exportExcel instead
      */
-    public function exportSalesExcel(Request $request)
+    public function exportExcel(Request $request)
     {
         // Implementation would use Maatwebsite\Excel package
-        // For now, return a placeholder response
         return response()->json(['message' => 'Excel export functionality to be implemented']);
     }
 
     /**
      * Export Sales Report to PDF
-     * @deprecated Use SalesReportController@exportPDF instead
      */
-    public function exportSalesPDF(Request $request)
+    public function exportPDF(Request $request)
     {
         // Implementation would use DomPDF package
-        // For now, return a placeholder response
         return response()->json(['message' => 'PDF export functionality to be implemented']);
     }
 }
