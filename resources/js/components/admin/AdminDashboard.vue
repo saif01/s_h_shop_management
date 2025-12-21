@@ -65,12 +65,61 @@
                     </div>
 
                     <div v-else class="ai-content">
+                        <div class="ai-meta-row">
+                            <div class="ai-meta-card" v-if="aiInsights.performanceScore">
+                                <div class="ai-meta-icon success">
+                                    <v-icon icon="mdi-speedometer" size="16" />
+                                </div>
+                                <div class="ai-meta-body">
+                                    <div class="ai-meta-label">Performance</div>
+                                    <div class="ai-meta-value">{{ aiInsights.performanceScore.score }}</div>
+                                    <div class="ai-meta-note">{{ aiInsights.performanceScore.label }}</div>
+                                </div>
+                            </div>
+
+                            <div class="ai-meta-card" :class="aiInsights.anomalies && aiInsights.anomalies.length > 0 ? 'meta-alert' : ''">
+                                <div class="ai-meta-icon" :class="aiInsights.anomalies && aiInsights.anomalies.length > 0 ? 'warning' : 'success'">
+                                    <v-icon :icon="aiInsights.anomalies && aiInsights.anomalies.length > 0 ? 'mdi-alert-octagon' : 'mdi-shield-check'" size="16" />
+                                </div>
+                                <div class="ai-meta-body">
+                                    <div class="ai-meta-label">Alerts</div>
+                                    <div class="ai-meta-value">{{ aiInsights.anomalies && aiInsights.anomalies.length > 0 ? aiInsights.anomalies.length : 0 }}</div>
+                                    <div class="ai-meta-note">{{ aiInsights.anomalies && aiInsights.anomalies.length > 0 ? aiInsights.anomalies[0].message : 'All clear' }}</div>
+                                </div>
+                            </div>
+
+                            <div class="ai-meta-card" v-if="aiInsights.salesForecast">
+                                <div class="ai-meta-icon info">
+                                    <v-icon icon="mdi-trending-up" size="16" />
+                                </div>
+                                <div class="ai-meta-body">
+                                    <div class="ai-meta-label">Forecast</div>
+                                    <div class="ai-meta-value">{{ formatCurrency(aiInsights.salesForecast.predicted) }}</div>
+                                    <div class="ai-meta-note">Next {{ aiInsights.salesForecast.period }}</div>
+                                </div>
+                            </div>
+
+                            <div class="ai-meta-card" v-if="aiInsights.recommendations && aiInsights.recommendations.length > 0">
+                                <div class="ai-meta-icon primary">
+                                    <v-icon icon="mdi-lightbulb-on-outline" size="16" />
+                                </div>
+                                <div class="ai-meta-body">
+                                    <div class="ai-meta-label">Recommendations</div>
+                                    <div class="ai-meta-value">{{ aiInsights.recommendations.length }}</div>
+                                    <div class="ai-meta-note">Top priority: {{ aiInsights.recommendations[0].priority }}</div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Main Insights Grid -->
-                        <div class="ai-insights-grid">
+                        <div class="ai-insights-grid ai-compact-grid">
                             <!-- Performance Score -->
                             <div v-if="aiInsights.performanceScore" class="ai-insight-card ai-card-performance">
                                 <div class="ai-insight-header">
-                                    <v-icon icon="mdi-chart-box" size="18" color="success" />
+                                    <div class="ai-header-chip success">
+                                        <v-icon icon="mdi-chart-bell-curve" size="14" />
+                                        Score Pulse
+                                    </div>
                                     <span class="ai-insight-title">Performance</span>
                                 </div>
                                 <div class="ai-performance-content">
@@ -84,6 +133,10 @@
                                     <div class="ai-score-info">
                                         <div class="ai-score-label">{{ aiInsights.performanceScore.label }}</div>
                                         <div class="ai-score-desc">{{ aiInsights.performanceScore.description }}</div>
+                                        <div class="ai-score-tags">
+                                            <span class="ai-tag">{{ getPerformanceColor(aiInsights.performanceScore.score) }} mode</span>
+                                            <span class="ai-tag subtle">Live</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -93,9 +146,10 @@
                                 class="ai-insight-card ai-card-anomaly"
                                 :class="aiInsights.anomalies[0].severity === 'high' ? 'anomaly-high' : 'anomaly-medium'">
                                 <div class="ai-insight-header">
-                                    <v-icon icon="mdi-alert-circle"
-                                        :color="aiInsights.anomalies[0].severity === 'high' ? 'error' : 'warning'"
-                                        size="18" />
+                                    <div class="ai-header-chip" :class="aiInsights.anomalies[0].severity === 'high' ? 'error' : 'warning'">
+                                        <v-icon icon="mdi-radar" size="14" />
+                                        Signal
+                                    </div>
                                     <span class="ai-insight-title">Alert</span>
                                 </div>
                                 <div class="ai-anomaly-message">{{ aiInsights.anomalies[0].message }}</div>
@@ -108,7 +162,10 @@
                             <!-- Sales Forecast -->
                             <div v-if="aiInsights.salesForecast" class="ai-insight-card ai-card-forecast">
                                 <div class="ai-insight-header">
-                                    <v-icon icon="mdi-trending-up" size="18" color="info" />
+                                    <div class="ai-header-chip info">
+                                        <v-icon icon="mdi-timeline-clock-outline" size="14" />
+                                        Projection
+                                    </div>
                                     <span class="ai-insight-title">Forecast</span>
                                 </div>
                                 <div class="ai-forecast-value">{{ formatCurrency(aiInsights.salesForecast.predicted) }}
@@ -1455,6 +1512,85 @@ export default {
     padding: 20px;
 }
 
+.ai-meta-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.ai-meta-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(var(--v-border-color), 0.1);
+    background: linear-gradient(140deg, rgba(var(--v-theme-surface), 0.9), rgba(var(--v-theme-surface), 0.6));
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.ai-meta-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.ai-meta-icon.success {
+    background: linear-gradient(135deg, rgba(var(--v-theme-success), 0.9), rgba(var(--v-theme-success), 0.7));
+}
+
+.ai-meta-icon.warning {
+    background: linear-gradient(135deg, rgba(var(--v-theme-warning), 0.95), rgba(var(--v-theme-warning), 0.75));
+}
+
+.ai-meta-icon.info {
+    background: linear-gradient(135deg, rgba(var(--v-theme-info), 0.9), rgba(var(--v-theme-info), 0.7));
+}
+
+.ai-meta-icon.primary {
+    background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.95), rgba(var(--v-theme-primary), 0.75));
+}
+
+.ai-meta-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.ai-meta-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgba(var(--v-theme-on-surface), 0.65);
+}
+
+.ai-meta-value {
+    font-size: 1rem;
+    font-weight: 800;
+    color: rgb(var(--v-theme-on-surface));
+    letter-spacing: -0.01em;
+}
+
+.ai-meta-note {
+    font-size: 0.65rem;
+    color: rgba(var(--v-theme-on-surface), 0.55);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.meta-alert {
+    border-color: rgba(var(--v-theme-error), 0.25);
+    background: linear-gradient(140deg, rgba(var(--v-theme-error), 0.14), rgba(var(--v-theme-surface), 0.75));
+}
+
 .ai-insights-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -1462,10 +1598,15 @@ export default {
     margin-bottom: 16px;
 }
 
+.ai-compact-grid {
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 14px;
+}
+
 .ai-insight-card {
     border-radius: 12px;
     border: 1px solid rgba(var(--v-border-color), 0.1);
-    background: rgba(var(--v-theme-surface), 0.8);
+    background: linear-gradient(180deg, rgba(var(--v-theme-surface), 0.9), rgba(var(--v-theme-surface), 0.7));
     padding: 16px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
@@ -1517,6 +1658,40 @@ export default {
     margin-bottom: 12px;
 }
 
+.ai-header-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    font-size: 0.65rem;
+    letter-spacing: 0.02em;
+    background: rgba(var(--v-border-color), 0.08);
+    color: rgba(var(--v-theme-on-surface), 0.8);
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.ai-header-chip.success {
+    background: rgba(var(--v-theme-success), 0.15);
+    color: rgb(var(--v-theme-success));
+}
+
+.ai-header-chip.info {
+    background: rgba(var(--v-theme-info), 0.15);
+    color: rgb(var(--v-theme-info));
+}
+
+.ai-header-chip.warning {
+    background: rgba(var(--v-theme-warning), 0.15);
+    color: rgb(var(--v-theme-warning));
+}
+
+.ai-header-chip.error {
+    background: rgba(var(--v-theme-error), 0.15);
+    color: rgb(var(--v-theme-error));
+}
+
 .ai-insight-title {
     font-size: 0.8rem;
     font-weight: 600;
@@ -1553,6 +1728,27 @@ export default {
     font-size: 0.7rem;
     color: rgba(var(--v-theme-on-surface), 0.6);
     line-height: 1.3;
+}
+
+.ai-score-tags {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.ai-tag {
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    background: rgba(var(--v-border-color), 0.08);
+    color: rgba(var(--v-theme-on-surface), 0.65);
+}
+
+.ai-tag.subtle {
+    background: rgba(var(--v-theme-primary), 0.12);
+    color: rgb(var(--v-theme-primary));
 }
 
 .ai-anomaly-message {
