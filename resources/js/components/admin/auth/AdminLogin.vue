@@ -79,8 +79,8 @@ export default {
     data() {
         return {
             form: {
-                email: '',
-                password: ''
+                email: 'admin@mail.com',
+                password: 'password'
             },
             loading: false,
             showPassword: false,
