@@ -57,9 +57,51 @@
                                 </v-form>
 
                                 <div class="text-center mt-4">
-                                    <p class="text-caption text-grey">
-                                        Protected by <span class="font-weight-bold text-primary">CPB-IT Security</span>
-                                    </p>
+                                    <v-menu open-on-hover location="top">
+                                        <template v-slot:activator="{ props }">
+                                            <p class="text-caption text-grey" v-bind="props" style="cursor: pointer;">
+                                                Powered By DigiLiftPro <a href="https://digiliftpro.com" target="_blank"
+                                                    style="text-decoration: none; color: inherit; opacity: 0.9;">https://digiliftpro.com</a>
+                                                <v-icon size="x-small" class="ml-1">mdi-information-outline</v-icon>
+                                            </p>
+                                        </template>
+                                        <v-card class="powered-by-card" min-width="280">
+                                            <v-card-title class="text-h6 pb-2">
+                                                <v-icon class="mr-2">mdi-code-tags</v-icon>
+                                                Powered By DigiLiftPro
+                                            </v-card-title>
+                                            <v-divider></v-divider>
+                                            <v-card-text class="pt-3">
+                                                <div class="powered-by-info">
+                                                    <div class="info-item mb-3">
+                                                        <div class="info-label">
+                                                            <v-icon size="small" class="mr-1">mdi-web</v-icon>
+                                                            Website
+                                                        </div>
+                                                        <div class="info-value">
+                                                            <a href="https://digiliftpro.com" target="_blank"
+                                                                style="color: #6366f1; text-decoration: none;">https://digiliftpro.com</a>
+                                                        </div>
+                                                    </div>
+                                                    <div class="info-item mb-3">
+                                                        <div class="info-label">
+                                                            <v-icon size="small"
+                                                                class="mr-1">mdi-account-circle</v-icon>
+                                                            Powered By
+                                                        </div>
+                                                        <div class="info-value">DigiLiftPro</div>
+                                                    </div>
+                                                    <div class="info-item mb-2">
+                                                        <div class="info-label">
+                                                            <v-icon size="small" class="mr-1">mdi-tag</v-icon>
+                                                            Version
+                                                        </div>
+                                                        <div class="info-value">v1.0</div>
+                                                    </div>
+                                                </div>
+                                            </v-card-text>
+                                        </v-card>
+                                    </v-menu>
                                 </div>
                             </v-col>
                         </v-row>
@@ -290,5 +332,49 @@ export default {
 
 :deep(.v-label) {
     font-size: 0.9rem;
+}
+
+.powered-by-card {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+    border-radius: 12px !important;
+}
+
+.powered-by-info {
+    font-size: 13px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.info-label {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: #6366f1;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-value {
+    color: #334155;
+    font-weight: 500;
+    padding-left: 20px;
+}
+
+.text-caption a {
+    color: inherit;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    margin-left: 4px;
+    opacity: 0.9;
+}
+
+.text-caption a:hover {
+    opacity: 1;
+    text-decoration: underline;
 }
 </style>
